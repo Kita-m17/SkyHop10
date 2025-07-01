@@ -5,66 +5,49 @@ public class SpawnManager : MonoBehaviour
 {
     public GameObject[] platforms;
     public GameObject[] clouds;
-    public GameObject player;
-    public GameObject backgroundPrefab;
-    private Vector3 backgroundStart;
-    private float repeatHeight = 50f;
-    private float lastBackgroundY = 0f;
 
-    //public float spawnDistance;
-    public float spawnHeight = 3;
-    private float lastSpawnY;
+    public float spawnDistance = 14f;
+    private float spawnY = 8;
+    private float spawnInterval = 2f;
+    private float startDelay = 2f;
+    public float verticalSpacing = 2f; // Distance between platform layers
+
+    public float maxHorizontalJump = 6f; // test in scene view how far player can jump
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        backgroundStart = backgroundPrefab.transform.position;
-        lastSpawnY = player.transform.position.y;
-
+        InvokeRepeating("SpawnPlatform", startDelay, spawnInterval); // Spawn platforms every second
     }
 
     // Update is called once per frame
     void Update()
     {
-        /**
-        float playerY = player.transform.position.y;
-
-        if(playerY + Camera.main.orthographicSize > backgroundStart.y + repeatHeight)
-        {
-            SpawnBackground(lastBackgroundY+repeatHeight);
-            lastBackgroundY += repeatHeight;
-        }
-
-        if(playerY > lastSpawnY)
-        {
-            SpawnPlatform(lastSpawnY);
-            SpawnCloud(lastSpawnY);
-            lastSpawnY += spawnHeight;
-        }
-        **/
     }
 
-    void SpawnBackground(float y)
-    {
-        Vector3 position = new Vector3(0, y, 0); // Change X/Z if needed
-        Instantiate(backgroundPrefab, position, Quaternion.identity);
-
-    }
-
-    void SpawnPlatform(float y)
+    void SpawnPlatform()
     {
         int randomIndex = Random.Range(0, platforms.Length);
-        float x = Random.Range(-6f,6f);
+        float x = Random.Range(-spawnDistance, spawnDistance);
         //float height = Random.Range(0, spawnHeight);
-        Vector3 pos = new Vector3(x, y, 0);
-        Instantiate(platforms[randomIndex], pos, Quaternion.identity);
+        Vector3 pos = new Vector3(x, spawnY, 0);
+        Instantiate(platforms[randomIndex], pos, platforms[randomIndex].transform.rotation);
+
+        if (Random.value < 0.5f) // 50% chance to spawn a cloud
+        {
+            SpawnCloud(spawnY + Random.Range(1f, 2.5f));
+        }
+        spawnY += verticalSpacing;
     }
 
     void SpawnCloud(float y)
     {
         int randomIndex = Random.Range(0, clouds.Length);
-        float x = Random.Range(-7f, 7f);
+        float x = Mathf.Clamp(Random.Range(-spawnDistance, spawnDistance), -maxHorizontalJump, maxHorizontalJump);
+
+        //float x = Random.Range(-spawnDistance, spawnDistance);
         //float height = Random.Range(0, spawnHeight);
         Vector3 pos = new Vector3(x, y, 0);
-        GameObject cloud = Instantiate(clouds[randomIndex], pos, Quaternion.identity);
+        GameObject cloud = Instantiate(clouds[randomIndex], pos, clouds[randomIndex].transform.rotation);
     }
 }

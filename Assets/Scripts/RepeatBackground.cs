@@ -8,6 +8,7 @@ public class RepeatBackground : MonoBehaviour
     void Start()
     {
         startPosition = transform.position;
+        repeatHeight = 16; // Get the height of the background from its BoxCollider
     }
 
     // Update is called once per frame

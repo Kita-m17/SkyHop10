@@ -1,14 +1,14 @@
+using System;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float speed = 5;
-    public float jumpForce = 5;
+    public float speed = 8;
+    public float jumpForce = 25;
     public bool isOnGround = true;
-    private float range = 14;
-    //public float accelaration = 12;
-    //public float targetSpeed, currentSpeed;
-    //public float gravity = 20;
+    private float xRange = 14;
+    private float yRange = 15;
+    public bool gameOver = false; // Variable to track if the game is over
 
     private Rigidbody2D rb2d;
     private Animator animator;
@@ -29,14 +29,22 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (transform.position.x < -range)
+
+        if (transform.position.y < -16)
         {
-            transform.position = new Vector3(-range, transform.position.y, transform.position.z);
-        }else if (transform.position.x > range)
-        {
-            transform.position = new Vector3(range, transform.position.y, transform.position.z);
+            gameOver = true;
         }
-        //rb2d.AddForce(transform.right * speed * Input.GetAxis("Horizontal"), ForceMode2D.Force);
+
+
+        if (transform.position.x < -xRange)
+        {
+            transform.position = new Vector3(-xRange, transform.position.y, transform.position.z);
+        }else if (transform.position.x > xRange)
+        {
+            transform.position = new Vector3(xRange, transform.position.y, transform.position.z);
+        }
+        
+        
         transform.Translate(Vector3.right * speed * Input.GetAxis("Horizontal") * Time.deltaTime);
         if(rb2d.linearVelocity.magnitude > 0.01f)
         {
@@ -63,31 +71,21 @@ public class PlayerController : MonoBehaviour
             rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
             animator.SetTrigger("jump");
             isOnGround = false;
-            //dirtParticle.Stop(); // Stop the dirt particle effect when jumping
-            //playerAudio.PlayOneShot(jumpSound, 1.0f); // Play the jump sound effect
         }
-        isOnGround = true;
-
         
     }
 
-    /**private void OnCollisionEnter2D(Collision2D collision)
+    private void OnCollisionEnter2D(Collision2D collision)
     {
+        
         if (collision.gameObject.CompareTag("Ground_Platform"))
         {
             isOnGround = true;
-
-            float y = Random.Range(5, 8);
-            float x = Random.Range(-4, 3);
-
-            Instantiate(platform, new Vector3(x, transform.position.y + y, 0), Quaternion.identity);
-            //Destroy(collision.gameObject);
         }
         else if (collision.gameObject.CompareTag("Cloud_Platform"))
         {
             isOnGround = true;
         }
     }
-    **/
 
 }

@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 7073759071591519897}
   - component: {fileID: 5112160788427645120}
   - component: {fileID: 7974573230377746248}
+  - component: {fileID: 5379557569559603186}
   m_Layer: 0
   m_Name: ScrollBackground 1
   m_TagString: Untagged
@@ -126,6 +127,19 @@ MonoBehaviour:
   horizontalScrollSpeed: 0
   verticalScrollSpeed: 0.2
 --- !u!114 &7974573230377746248
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1878562378898997811}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4d8b78616bcd1041ba3ae44f6af55d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 0}
+--- !u!114 &5379557569559603186
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

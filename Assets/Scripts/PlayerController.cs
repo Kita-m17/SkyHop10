@@ -5,6 +5,7 @@ public class PlayerController : MonoBehaviour
     public float speed = 5;
     public float jumpForce = 5;
     public bool isOnGround = true;
+    private float range = 14;
     //public float accelaration = 12;
     //public float targetSpeed, currentSpeed;
     //public float gravity = 20;
@@ -28,7 +29,15 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        rb2d.AddForce(transform.right * speed * Input.GetAxis("Horizontal"), ForceMode2D.Force);
+        if (transform.position.x < -range)
+        {
+            transform.position = new Vector3(-range, transform.position.y, transform.position.z);
+        }else if (transform.position.x > range)
+        {
+            transform.position = new Vector3(range, transform.position.y, transform.position.z);
+        }
+        //rb2d.AddForce(transform.right * speed * Input.GetAxis("Horizontal"), ForceMode2D.Force);
+        transform.Translate(Vector3.right * speed * Input.GetAxis("Horizontal") * Time.deltaTime);
         if(rb2d.linearVelocity.magnitude > 0.01f)
         {
             animator.SetBool("isWalking", true);
@@ -62,7 +71,7 @@ public class PlayerController : MonoBehaviour
         
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    /**private void OnCollisionEnter2D(Collision2D collision)
     {
         if (collision.gameObject.CompareTag("Ground_Platform"))
         {
@@ -79,5 +88,6 @@ public class PlayerController : MonoBehaviour
             isOnGround = true;
         }
     }
+    **/
 
 }

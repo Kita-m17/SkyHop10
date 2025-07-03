@@ -18,9 +18,7 @@ public class MoveCloud : MonoBehaviour
 
     void OnEnable()
     {
-        startPosition = transform.position;
-        direction = 1;
-
+        ResetCloud();
     }
 
 
@@ -47,6 +45,42 @@ public class MoveCloud : MonoBehaviour
         if(collision.gameObject.CompareTag("Ground_Platform") || collision.gameObject.CompareTag("Cloud_Platform"))
         {
             direction *= -1;
+        }
+    }
+
+    // Method to disable the cloud (called from PlayerController)
+    public void DisableMovement()
+    {
+        enabled = false;
+    }
+
+    // Method to enable the cloud movement
+    public void EnableMovement()
+    {
+        enabled = true;
+    }
+
+    void ResetCloud()
+    {
+        startPosition = transform.position;
+        direction = 1;
+        isInitialized = true;
+
+        Renderer renderer = GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.enabled = true;
+            if (renderer.material != null)
+            {
+                Color colour = renderer.material.color;
+                renderer.material.color = new Color(colour.r, colour.g, colour.b, 1f);
+            }
+        }
+
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider != null)
+        {
+            collider.enabled = true;
         }
     }
 }

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3627591513441369392}
   - component: {fileID: -7351899520672421183}
   - component: {fileID: -7243267373774883938}
+  - component: {fileID: 8043955696181990306}
   m_Layer: 0
   m_Name: Ground5
   m_TagString: Ground_Platform
@@ -161,3 +162,18 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.09, y: 0.57}
   m_EdgeRadius: 0
+--- !u!114 &8043955696181990306
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4127304248851640328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f91c9c9dac2f85479a42c898556ab0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  speed: 2
+  moveRange: 5
+  moveRight: 1

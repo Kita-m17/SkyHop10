@@ -20,7 +20,7 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 moveDirection;
 
-    private PlayerPhysics playerPhysics;
+    //private PlayerPhysics playerPhysics;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -87,31 +87,68 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground_Platform"))
         {
             isOnGround = true;
-            if (collision.contacts[0].normal.y > 0.5f) // Only reset if touching from the bottom
-            {
-                jumpsRemaining = maxJumps;
-            }
+            //if (collision.contacts[0].normal.y > 0.5f) // Only reset if touching from the bottom
+            //{
+            jumpsRemaining = maxJumps;
+            //}
         }
         else if (collision.gameObject.CompareTag("Cloud_Platform"))
         {
             isOnGround = true;
-            if (collision.contacts[0].normal.y > 0.5f) // Only reset if touching from the bottom
-            {
-                jumpsRemaining = maxJumps;
-                // Start coroutine to destroy the cloud after 5 seconds
-                StartCoroutine(DestroyCloudAfterDelay(collision.gameObject, 5f));
-            }
+            jumpsRemaining = maxJumps;
+            StartCoroutine(DestroyCloudAfterDelay(collision.gameObject, 1.5f, 5f));
         }
     }
 
-    private IEnumerator DestroyCloudAfterDelay(GameObject cloud, float delay)
+    private IEnumerator DestroyCloudAfterDelay(GameObject cloud, float fadeDuration, float delay)
     {
-        yield return new WaitForSeconds(delay);
-        if (cloud != null)
+        Renderer renderer = cloud.GetComponent<Renderer>();
+        PolygonCollider2D collider = cloud.GetComponent<PolygonCollider2D>();
+        Material material = renderer.material;
+        if (renderer == null || collider == null)
         {
-            Destroy(cloud);
+            Debug.LogWarning("Missing Renderer or Collider2D on cloud: " + cloud.name);
+            yield break;
         }
+        Color colour = material.color;
+
+        //float fadeDuration = 1.5f;
+        float time = 0f;
+
+        while (time < fadeDuration)
+        {
+            float alpha = Mathf.Lerp(1f, 0f, time / fadeDuration);
+            material.color = new Color(colour.r, colour.g, colour.b, alpha);
+            time += Time.deltaTime;
+            
+            yield return null;
+        }
+
+        material.color = new Color(colour.r, colour.g, colour.b, 0f);
+        cloud.GetComponent<MoveCloud>().enabled = false; // Disable the cloud's movement script
+        renderer.enabled = false; // Hide the cloud sprite
+        collider.enabled = false; // Disable the collider to prevent further interactions
+
+
+        yield return new WaitForSeconds(delay); // Wait for a moment before destroying
+
+        renderer.enabled = true; // Re-enable the sprite renderer
+        collider.enabled = true; // Re-enable the collider
+
+        cloud.GetComponent<MoveCloud>().enabled = true; // Re-enable the cloud's movement script
+
+        //float fadeInDuration = 1.5f;
+        float fadeInTime = 0f;
+
+        while (fadeInTime < fadeDuration)
+        {
+            float alpha = Mathf.Lerp(0f, 1f, fadeInTime / fadeDuration);
+            material.color = new Color(colour.r, colour.g, colour.b, alpha);
+            
+            fadeInTime += Time.deltaTime;
+            yield return null;
+
+        }
+        material.color = colour; // Ensure the sprite color is reset to original
     }
-
-
 }

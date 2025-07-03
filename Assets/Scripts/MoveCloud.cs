@@ -10,6 +10,7 @@ public class MoveCloud : MonoBehaviour
     private Rigidbody2D rb;
     private int direction = 1;
     private bool isInitialized = false;
+    
 
     void Awake()
     {
@@ -83,4 +84,6 @@ public class MoveCloud : MonoBehaviour
             collider.enabled = true;
         }
     }
+
+    
 }

@@ -19,5 +19,6 @@ public class MoveDown : MonoBehaviour
         if(!playerController.gameOver) // Check if the game is over
         {
             transform.Translate(Vector3.down * speed * Time.deltaTime); // Move the object down at a constant speed
-        }    }
+        }    
+    }
 }

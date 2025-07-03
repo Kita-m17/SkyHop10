@@ -180,23 +180,6 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 199057f637d6daf449a4b64ab7fb2d69, type: 3}
---- !u!1 &72183672 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1783147003450323983, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-  m_PrefabInstance: {fileID: 1808341792}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &72183679
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 72183672}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 849bc2ef1f082414ea478e77f9dd772c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1001 &164317417
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -355,6 +338,19 @@ MonoBehaviour:
   spawnDistance: 14
   verticalSpacing: 3
   maxHorizontalJump: 6
+  cleanupDistance: 20
+  jewelPrefabs:
+  - {fileID: 247656874661820135, guid: 7088e5db95a89654c8fe24a8a47e03c4, type: 3}
+  - {fileID: 8692086712415850898, guid: 2d1eb6831ae04f74dbfbf1789595d50a, type: 3}
+  - {fileID: 6721638174515780826, guid: 69e3fcacb55039546957d4ce2d6278c1, type: 3}
+  - {fileID: 8146233849881867509, guid: f25e76dc0d9e29f4f8b54431e9bee577, type: 3}
+  - {fileID: 6072777895973837054, guid: 5f738e10193e4c34e8b255688467a22f, type: 3}
+  - {fileID: 7652012466993002652, guid: 521ed90f79e315f439318601a23dbf97, type: 3}
+  - {fileID: 5762357625227160256, guid: dec7ae1b15cbaf44f9b11815775f456f, type: 3}
+  minSpawnDelay: 8
+  maxSpawnDelay: 12
+  totalJewelsToSpawn: 10
+  spawnOffsetY: 1
 --- !u!4 &201749020
 Transform:
   m_ObjectHideFlags: 0
@@ -524,6 +520,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 849bc2ef1f082414ea478e77f9dd772c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lowerBoundY: -15
+  usePlayerReference: 1
+  offsetFromPlayer: 5
 --- !u!114 &385518662
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -982,6 +981,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 849bc2ef1f082414ea478e77f9dd772c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lowerBoundY: -15
+  usePlayerReference: 1
+  offsetFromPlayer: 5
 --- !u!1 &786272017 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6527226283241579005, guid: 8a6df41aba1418f4cbfe3ae03898ae6a, type: 3}
@@ -1620,6 +1622,8 @@ MonoBehaviour:
   isOnGround: 1
   maxJumps: 2
   gameOver: 0
+  gems: 10
+  win: 0
   platform: {fileID: 385518657}
 --- !u!1001 &1523097360
 PrefabInstance:
@@ -1955,6 +1959,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 849bc2ef1f082414ea478e77f9dd772c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lowerBoundY: -15
+  usePlayerReference: 1
+  offsetFromPlayer: 5
 --- !u!1 &1705818716
 GameObject:
   m_ObjectHideFlags: 0
@@ -1986,25 +1993,53 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   itemsToPool:
   - objectToPool: {fileID: 3548137747986678636, guid: 07058ff1e70e6494295345e006763a24, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 8870286812461884452, guid: 5c5ecf6f14da79c43b1b3d73a520e2aa, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 1481958829459656540, guid: e84872554427bef43b94102c819a6600, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 2281408788497819784, guid: 2bdd4bd17d6aaea4bb86e3bfc1790806, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 1783147003450323983, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 1693198063162714448, guid: f670d952350182a478030375c14bdc53, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 6909628448717515384, guid: 7f1ddc68fc895424e847c0f1df993bf0, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 358164562313329340, guid: 3836b8aad02e6354c8fcab882e8fa2a4, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 5053844851706287355, guid: 73d4445abec697b4c8edb88430a5d2c6, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
   - objectToPool: {fileID: 4127304248851640328, guid: 14eb5be2173dc084bb07dffdc9d3e7c2, type: 3}
-    amountToPool: 2
+    amountToPool: 3
+    canGrow: 1
+  - objectToPool: {fileID: 247656874661820135, guid: 7088e5db95a89654c8fe24a8a47e03c4, type: 3}
+    amountToPool: 1
+    canGrow: 0
+  - objectToPool: {fileID: 8692086712415850898, guid: 2d1eb6831ae04f74dbfbf1789595d50a, type: 3}
+    amountToPool: 1
+    canGrow: 0
+  - objectToPool: {fileID: 6721638174515780826, guid: 69e3fcacb55039546957d4ce2d6278c1, type: 3}
+    amountToPool: 1
+    canGrow: 0
+  - objectToPool: {fileID: 8146233849881867509, guid: f25e76dc0d9e29f4f8b54431e9bee577, type: 3}
+    amountToPool: 1
+    canGrow: 0
+  - objectToPool: {fileID: 6072777895973837054, guid: 5f738e10193e4c34e8b255688467a22f, type: 3}
+    amountToPool: 1
+    canGrow: 0
+  - objectToPool: {fileID: 5762357625227160256, guid: dec7ae1b15cbaf44f9b11815775f456f, type: 3}
+    amountToPool: 1
+    canGrow: 0
 --- !u!4 &1705818718
 Transform:
   m_ObjectHideFlags: 0
@@ -2099,7 +2134,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3015345442225932960, guid: 2bdd4bd17d6aaea4bb86e3bfc1790806, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 3.7
+      value: -1.81
       objectReference: {fileID: 0}
     - target: {fileID: 3015345442225932960, guid: 2bdd4bd17d6aaea4bb86e3bfc1790806, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2213,75 +2248,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 1682139634}
   m_SourcePrefab: {fileID: 100100000, guid: 73d4445abec697b4c8edb88430a5d2c6, type: 3}
---- !u!1001 &1808341792
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 50.1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 21.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: -0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1313576917112301728, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1783147003450323983, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: m_Name
-      value: Cloud5 (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 8002539011798986735, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      propertyPath: speed
-      value: 0.2
-      objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 0}
-    - {fileID: 5976263071190928164, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-    - {fileID: 0}
-    - {fileID: 0}
-    - {fileID: 0}
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1783147003450323983, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 72183679}
-  m_SourcePrefab: {fileID: 100100000, guid: 4715c3b82a3bbfd42b70d44bf7cd241b, type: 3}
 --- !u!1001 &2135017913
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2540,7 +2506,6 @@ SceneRoots:
   - {fileID: 1636283189}
   - {fileID: 860470169}
   - {fileID: 1523097360}
-  - {fileID: 1808341792}
   - {fileID: 2135017913}
   - {fileID: 1779466007}
   - {fileID: 1761290592}

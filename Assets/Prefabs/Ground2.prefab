@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: -1866970748598318367}
   - component: {fileID: 8854926342208714198}
   - component: {fileID: -3616738735596155093}
+  - component: {fileID: -5378900261890931418}
   m_Layer: 0
   m_Name: Ground2
   m_TagString: Ground_Platform
@@ -162,6 +163,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 849bc2ef1f082414ea478e77f9dd772c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lowerBoundY: -15
+  usePlayerReference: 1
+  offsetFromPlayer: 5
 --- !u!251 &-3616738735596155093
 PlatformEffector2D:
   m_ObjectHideFlags: 0
@@ -181,3 +185,18 @@ PlatformEffector2D:
   m_UseSideFriction: 0
   m_UseSideBounce: 0
   m_SideArc: 1
+--- !u!114 &-5378900261890931418
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6909628448717515384}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a071f2f9963ac4b43984491164e60ae5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  movementType: 0
+  moveRange: 2
+  moveSpeed: 1.5

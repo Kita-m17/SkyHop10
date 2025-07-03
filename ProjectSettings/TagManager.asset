@@ -6,6 +6,8 @@ TagManager:
   tags:
   - Ground_Platform
   - Cloud_Platform
+  - Gem
+  - Poweup
   layers:
   - Default
   - TransparentFX

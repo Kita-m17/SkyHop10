@@ -12,6 +12,8 @@ public class PlayerController : MonoBehaviour
     private float xRange = 14;
     private float yRange = 15;
     public bool gameOver = false; // Variable to track if the game is over
+    public int gems = 0;
+    public bool win = false; // Variable to track if the player has won
 
     private Rigidbody2D rb2d;
     private Animator animator;
@@ -150,5 +152,19 @@ public class PlayerController : MonoBehaviour
 
         }
         material.color = colour; // Ensure the sprite color is reset to original
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Gem"))
+        {
+            gems++;
+            Debug.Log($"Jewels collected: {gems}/7");
+            other.gameObject.SetActive(false);
+            if(gems == 7)
+            {
+                win = true;
+            }
+        }
     }
 }

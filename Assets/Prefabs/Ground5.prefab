@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: -7351899520672421183}
   - component: {fileID: -7243267373774883938}
   - component: {fileID: 7145877270419695320}
+  - component: {fileID: 8818798381186198157}
   m_Layer: 0
   m_Name: Ground5
   m_TagString: Ground_Platform
@@ -116,6 +117,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 849bc2ef1f082414ea478e77f9dd772c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  lowerBoundY: -15
+  usePlayerReference: 1
+  offsetFromPlayer: 5
 --- !u!61 &-7243267373774883938
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -181,3 +185,18 @@ PlatformEffector2D:
   m_UseSideFriction: 0
   m_UseSideBounce: 0
   m_SideArc: 1
+--- !u!114 &8818798381186198157
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4127304248851640328}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a071f2f9963ac4b43984491164e60ae5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  movementType: 0
+  moveRange: 2
+  moveSpeed: 1.5

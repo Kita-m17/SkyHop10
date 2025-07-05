@@ -8,6 +8,7 @@ TagManager:
   - Cloud_Platform
   - Gem
   - Poweup
+  - Coin
   layers:
   - Default
   - TransparentFX

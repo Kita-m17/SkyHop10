@@ -5,7 +5,7 @@ using System.Collections;
 public class PlayerController : MonoBehaviour
 {
     public float speed = 8;
-    public float jumpForce = 35;
+    public float jumpForce = 50;
     public bool isOnGround = false;
     public int maxJumps = 2;      // Total allowed jumps (1 = single jump, 2 = double jump)
     private float jumpsRemaining; // Number of jumps remaining
@@ -13,6 +13,7 @@ public class PlayerController : MonoBehaviour
     private float yRange = 15;
     public bool gameOver = false; // Variable to track if the game is over
     public int gems = 0;
+    public int coins = 0;
     public bool win = false; // Variable to track if the player has won
 
     private Rigidbody2D rb2d;
@@ -22,7 +23,6 @@ public class PlayerController : MonoBehaviour
 
     private Vector2 moveDirection;
 
-    //private PlayerPhysics playerPhysics;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -89,17 +89,49 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground_Platform"))
         {
             isOnGround = true;
-            //if (collision.contacts[0].normal.y > 0.5f) // Only reset if touching from the bottom
-            //{
-            jumpsRemaining = maxJumps;
-            //}
+            float averageY = 0f;
+
+            // Calculate the average Y value of the contact normals
+            foreach (var contact in collision.contacts)
+            {
+                averageY += contact.normal.y;
+            }
+            averageY /= collision.contactCount;
+
+            if (averageY > 0.2) // Only reset if touching from the bottom
+            {
+                jumpsRemaining = maxJumps;
+            }
+
+            // Attach to platform so player moves with it
+            transform.SetParent(collision.transform);
         }
         else if (collision.gameObject.CompareTag("Cloud_Platform"))
         {
             isOnGround = true;
             jumpsRemaining = maxJumps;
             StartCoroutine(DestroyCloudAfterDelay(collision.gameObject, 1.5f, 5f));
+            // Attach to platform so player moves with it
+            transform.SetParent(collision.transform);
         }
+    }
+
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        if (!gameObject.activeInHierarchy) return;
+
+        if (collision.gameObject.CompareTag("Ground_Platform") || collision.gameObject.CompareTag("Cloud_Platform"))
+        {
+            StartCoroutine(DetachFromPlatform());
+            //StartCoroutine(UnparentNextFrame());
+        }
+    }
+
+    private IEnumerator DetachFromPlatform()
+    {
+        yield return new WaitForSeconds(0.1f); // Small delay to ensure smooth detachment
+        isOnGround = false; // Reset ground state
+        transform.SetParent(null);
     }
 
     private IEnumerator DestroyCloudAfterDelay(GameObject cloud, float fadeDuration, float delay)
@@ -114,7 +146,6 @@ public class PlayerController : MonoBehaviour
         }
         Color colour = material.color;
 
-        //float fadeDuration = 1.5f;
         float time = 0f;
 
         while (time < fadeDuration)
@@ -139,7 +170,6 @@ public class PlayerController : MonoBehaviour
 
         cloud.GetComponent<MoveCloud>().enabled = true; // Re-enable the cloud's movement script
 
-        //float fadeInDuration = 1.5f;
         float fadeInTime = 0f;
 
         while (fadeInTime < fadeDuration)
@@ -165,6 +195,12 @@ public class PlayerController : MonoBehaviour
             {
                 win = true;
             }
+        }else if (other.CompareTag("Coin"))
+        {
+            coins++;
+            Debug.Log($"Coins collected: {coins}");
+            other.gameObject.SetActive(false);
         }
+        
     }
 }

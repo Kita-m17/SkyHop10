@@ -11,13 +11,13 @@ public class SpawnManager : MonoBehaviour
     #endregion
 
     #region Spawn Parameters
-    public float spawnDistance = 8f;
-    private float spawnY = 5;
-    private float spawnInterval = 2f;
-    private float startDelay = 2f;
-    public float verticalSpacing = 2f; // Distance between platform layers
+    public float spawnDistance = 7f;
+    private float spawnY = 8;
+    private float spawnInterval = 3f;
+    private float startDelay = 3f;
+    public float verticalSpacing = 3.5f; // Distance between platform layers
     
-    public float maxHorizontalJump = 6f; // test in scene view how far player can jump
+    public float maxHorizontalJump = 4f; // test in scene view how far player can jump
     #endregion
 
     #region Cleanup Parameters
@@ -44,7 +44,6 @@ public class SpawnManager : MonoBehaviour
         }
         StartCoroutine(WaitForPoolAndStartSpawning());
         StartCoroutine(SpawnJewelRoutine());
-
     }
 
     #region Platform spawner
@@ -81,16 +80,6 @@ public class SpawnManager : MonoBehaviour
             Debug.LogWarning("No platforms available to spawn.");
             return;
         }
-
-        /**
-        int randomIndex = Random.Range(0, platforms.Length);
-        GameObject prefab = platforms[randomIndex];
-        if (prefab == null)
-        {
-            Debug.LogWarning("Selected platform prefab is null.");
-            return;
-        }
-        **/
 
         //calculate next spawn position
         float newY = nextSpawnY + verticalSpacing;
@@ -155,7 +144,6 @@ public class SpawnManager : MonoBehaviour
 
         if (clouds == null || clouds.Length == 0)
         {
-            Debug.LogWarning("No clouds available to spawn.");
             return;
         }
 
@@ -163,7 +151,6 @@ public class SpawnManager : MonoBehaviour
         GameObject prefab = clouds[randomIndex];
         if (prefab == null)
         {
-            Debug.LogWarning("Selected cloud prefab is null.");
             return;
         }
         
@@ -182,11 +169,7 @@ public class SpawnManager : MonoBehaviour
             cloud.transform.rotation = clouds[randomIndex].transform.rotation;
             cloud.SetActive(true);
 
-            Debug.Log($"Spawned cloud at {pos} from prefab {prefab.name}");
-        }
-        else
-        {
-            Debug.LogWarning($"No pooled object available for cloud prefab: {prefab.name}");
+            //Debug.Log($"Spawned cloud at {pos} from prefab {prefab.name}");
         }
     }
 
@@ -250,6 +233,7 @@ public class SpawnManager : MonoBehaviour
                 : VerticalPlatformMover.MovementType.None;
         }
 
+        SpawnCoin(platform.transform); // Spawn a coin on the platform
     }
 
     private void OnDisable()
@@ -261,7 +245,7 @@ public class SpawnManager : MonoBehaviour
 
     #region Jewel Spawner
     public GameObject[] jewelPrefabs;
-    public float minSpawnDelay = 8f, maxSpawnDelay =12f;
+    public float minSpawnDelay = 5f, maxSpawnDelay =12f;
     public int totalJewelsToSpawn = 7;
 
     private int jewelsSpawned = 0;
@@ -325,4 +309,34 @@ public class SpawnManager : MonoBehaviour
         return highest;
     }
     #endregion region
+
+    #region Spawn Coin
+    public GameObject coinPrefab;
+    public float coinChance = 0.3f;
+
+    public void SpawnCoin(Transform parentPlatform)
+    {
+        if (Random.value < coinChance)
+        {
+            Vector3 spawnPosition = parentPlatform.position + Vector3.up * 0.8f; // Spawn above the platfor8
+
+            Collider2D[] hits = Physics2D.OverlapCircleAll(spawnPosition, 0.5f);
+            foreach (var hit in hits)
+            {
+                if (hit != null &&  (hit.CompareTag("Gem") || hit.CompareTag("Coin")))
+                {
+                    return; // skip this coin spawn
+                }
+            }
+            GameObject coin = ObjectPooling.Instance.GetPooledObject(coinPrefab);
+            if (coin != null)
+            {
+                
+                coin.transform.position = spawnPosition;
+                coin.transform.rotation = Quaternion.identity; // Reset rotation
+                coin.SetActive(true);
+            }
+        }
+    }
+    #endregion
 }

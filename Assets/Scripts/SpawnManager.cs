@@ -168,8 +168,6 @@ public class SpawnManager : MonoBehaviour
             cloud.transform.position = pos;
             cloud.transform.rotation = clouds[randomIndex].transform.rotation;
             cloud.SetActive(true);
-
-            //Debug.Log($"Spawned cloud at {pos} from prefab {prefab.name}");
         }
     }
 
@@ -276,6 +274,14 @@ public class SpawnManager : MonoBehaviour
         }
 
         Vector3 spawnPos = lastPlatform.transform.position + Vector3.up * spawnOffsetY;
+        Collider2D[] hits = Physics2D.OverlapCircleAll(spawnPos, 0.5f);
+        foreach (var hit in hits)
+        {
+            if (hit != null && (hit.CompareTag("Gem") || hit.CompareTag("Coin")))
+            {
+                return; // skip this coin spawn
+            }
+        }
 
         int randomIndex = Random.Range(0, jewelPrefabs.Length);
         GameObject jewelPrefab = jewelPrefabs[randomIndex];
@@ -286,7 +292,9 @@ public class SpawnManager : MonoBehaviour
         {
             jewel.transform.position = spawnPos;
             jewel.transform.rotation = jewelPrefab.transform.rotation; // Reset rotation
+            jewel.transform.SetParent(lastPlatform.transform);
             jewel.SetActive(true);
+            
             jewelsSpawned++;
         }
     }
@@ -334,6 +342,7 @@ public class SpawnManager : MonoBehaviour
                 
                 coin.transform.position = spawnPosition;
                 coin.transform.rotation = Quaternion.identity; // Reset rotation
+                coin.transform.SetParent(parentPlatform);
                 coin.SetActive(true);
             }
         }

@@ -12,8 +12,6 @@ public class Target : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        //targetRB = GetComponent<Rigidbody2D>();
-        //targetRB.AddForce(new Vector2(Random.Range(-5f, 5f), Random.Range(-5f, 5f)), ForceMode2D.Impulse);
         startPosition = transform.position;
     }
 
@@ -28,9 +26,9 @@ public class Target : MonoBehaviour
     {
         if (other.CompareTag("Player"))
         {
-            // Trigger powerup effect
-            Debug.Log("Collected a jewel!");
+            GameManager.Instance.CollectJewel();
             gameObject.SetActive(false);
+            
         }
     }
 }

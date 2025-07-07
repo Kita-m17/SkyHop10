@@ -40,14 +40,10 @@ public class VerticalPlatformMover : MonoBehaviour
         transform.Translate(moveAxis * direction * moveSpeed * Time.deltaTime);
 
         // Check if the platform has reached the end of its movement range
-        //float distance = Vector3.Distance(transform.position, startPosition);
         float offset = Vector3.Dot(transform.position - startPosition, moveAxis); // Calculate offset in the movement direction
         if (Mathf.Abs(offset) >= moveRange)
         {
             direction *= -1; // Reverse direction
-            // Reset start position to allow smooth back-and-forth
-            //Vector3 clampedPosition = startPosition + moveAxis * moveRange * direction;
-            //transform.position = clampedPosition;
         }
     }
 

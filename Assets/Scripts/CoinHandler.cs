@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class CoinHandler : MonoBehaviour
 {
-    public int coinValue = 2;
-
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -21,7 +19,7 @@ public class CoinHandler : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             gameObject.SetActive(false);
-            GameManager.Instance.AddScore(coinValue);
+            GameManager.Instance.AddScore();
         }
     }
 }

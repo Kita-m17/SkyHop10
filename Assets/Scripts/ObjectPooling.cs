@@ -145,4 +145,19 @@ public class ObjectPooling : MonoBehaviour
             }
         }
     }
+
+    public void ResetPool()
+    {
+        foreach (var pool in pooledObjects.Values)
+        {
+            foreach (var obj in pool)
+            {
+                if (obj != null)
+                {
+                    obj.SetActive(false);
+                    ResetObject(obj);
+                }
+            }
+        }
+    }
 }

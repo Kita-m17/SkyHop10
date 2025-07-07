@@ -9,6 +9,7 @@ TagManager:
   - Gem
   - Poweup
   - Coin
+  - DeathZone
   layers:
   - Default
   - TransparentFX

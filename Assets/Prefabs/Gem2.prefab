@@ -123,6 +123,7 @@ GameObject:
   - component: {fileID: 5625233756984341065}
   - component: {fileID: 8591292070973759810}
   - component: {fileID: 8943899505313393862}
+  - component: {fileID: 4725388367030620811}
   m_Layer: 0
   m_Name: Gem2
   m_TagString: Gem
@@ -140,8 +141,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -2.88, y: -0.7, z: 0}
-  m_LocalScale: {x: 1.8358134, y: 1.9021683, z: 1.7694588}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 3, y: 3.108434, z: 2.8915663}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 2825887320720212151}
   m_Father: {fileID: 0}
@@ -254,7 +255,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7813713711445520325}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f4d8b78616bcd1041ba3ae44f6af55d8, type: 3}
   m_Name: 
@@ -275,3 +276,30 @@ MonoBehaviour:
   rotationSpeed: 50
   floatSpeed: 1
   floatHeight: 0.5
+--- !u!50 &4725388367030620811
+Rigidbody2D:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7813713711445520325}
+  m_BodyType: 1
+  m_Simulated: 1
+  m_UseFullKinematicContacts: 0
+  m_UseAutoMass: 0
+  m_Mass: 1
+  m_LinearDamping: 0
+  m_AngularDamping: 0.05
+  m_GravityScale: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_Interpolate: 0
+  m_SleepingMode: 1
+  m_CollisionDetection: 0
+  m_Constraints: 0

@@ -12,15 +12,14 @@ public class PlayerController : MonoBehaviour
     private float xRange = 14;
     private float yRange = 15;
     public bool gameOver = false; // Variable to track if the game is over
-    public int gems = 0;
-    public int coins = 0;
     public bool win = false; // Variable to track if the player has won
 
     private Rigidbody2D rb2d;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     public GameObject platform; // Reference to the platform prefab
-
+    public GameManager gameManager;
+    public VerticalPlatformMover mover;
     private Vector2 moveDirection;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -36,10 +35,10 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
 
-        if (transform.position.y < -10)
-        {
-            gameOver = true;
-        }
+        //if (transform.position.y < -10)
+        //{
+            //gameOver = true;
+        //}
 
 
         if (transform.position.x < -xRange)
@@ -123,7 +122,6 @@ public class PlayerController : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground_Platform") || collision.gameObject.CompareTag("Cloud_Platform"))
         {
             StartCoroutine(DetachFromPlatform());
-            //StartCoroutine(UnparentNextFrame());
         }
     }
 
@@ -188,18 +186,28 @@ public class PlayerController : MonoBehaviour
     {
         if (other.CompareTag("Gem"))
         {
-            gems++;
-            Debug.Log($"Jewels collected: {gems}/7");
             other.gameObject.SetActive(false);
-            if(gems == 7)
-            {
-                win = true;
-            }
         }else if (other.CompareTag("Coin"))
         {
-            coins++;
-            Debug.Log($"Coins collected: {coins}");
             other.gameObject.SetActive(false);
+        }else if(other.CompareTag("DeathZone"))
+        {
+            gameOver = true;
+            win = false;
+            GameManager.Instance.GameOver();
+
+            VerticalPlatformMover[] movers = FindObjectsOfType<VerticalPlatformMover>();
+            foreach (VerticalPlatformMover mover in movers)
+            {
+                mover.DisableMovement(); // Disable all vertical platform movers
+            }
+
+            MoveCloud[] clouds = FindObjectsOfType<MoveCloud>();
+            foreach(var cloud in clouds)
+            {
+                cloud.DisableMovement(); // Disable all clouds
+            }
+
         }
         
     }

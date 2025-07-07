@@ -15,7 +15,7 @@ public class SpawnManager : MonoBehaviour
     private float spawnY = 8;
     private float spawnInterval = 3f;
     private float startDelay = 3f;
-    public float verticalSpacing = 3.5f; // Distance between platform layers
+    public float verticalSpacing = 3.8f; // Distance between platform layers
     
     public float maxHorizontalJump = 4f; // test in scene view how far player can jump
     #endregion
@@ -27,7 +27,29 @@ public class SpawnManager : MonoBehaviour
     
     private float nextSpawnY = 0f; // Y position for the next platform spawn
     private PlayerController playerController;
+    
+    
+    public GameObject[] jewelPrefabs;
+    public float minSpawnDelay = 5f, maxSpawnDelay =12f;
+    public int totalJewelsToSpawn = 7;
 
+    private int jewelsSpawned = 0;
+    private float lastPlayformY = 0f;
+    public float spawnOffsetY = 1f; // Offset above the platform to spawn jewels
+    
+    public GameObject coinPrefab;
+    public float coinChance = 0.3f;
+
+    #region Game Speed Parameters
+    public float minSpawnInterval = 1f, maxSpawnInterval = 4f;
+    public float spawnSpeed = 1f; // Speed at which platforms are spawned
+    private float currentSpawnInterval;
+    private float spawnTimeElapsed = 0f; // Time elapsed since the last platform spawn
+
+    public float gameSpeedIncreaseRate = 0.1f;
+    public float maxGameSpeed = 5f; // Maximum speed limit for spawning platforms
+    
+    #endregion
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -42,6 +64,8 @@ public class SpawnManager : MonoBehaviour
         {
             playerController = player.GetComponent<PlayerController>();
         }
+
+        currentSpawnInterval = maxSpawnInterval; // Initialize with max spawn interval
         StartCoroutine(WaitForPoolAndStartSpawning());
         StartCoroutine(SpawnJewelRoutine());
     }
@@ -226,7 +250,7 @@ public class SpawnManager : MonoBehaviour
         VerticalPlatformMover mover = platform.GetComponent<VerticalPlatformMover>();
         if (mover != null)
         {
-            mover.movementType = Random.value < 0.3f
+            mover.movementType = Random.value < 0.1f
                 ? (Random.value < 0.5f ? VerticalPlatformMover.MovementType.Horizontal : VerticalPlatformMover.MovementType.Vertical)
                 : VerticalPlatformMover.MovementType.None;
         }
@@ -237,19 +261,14 @@ public class SpawnManager : MonoBehaviour
     private void OnDisable()
     {
         CancelInvoke("SpawnPlatform"); // Stop spawning platforms when this script is disabled
+        CancelInvoke("SpawnRandomPlatform"); // Stop spawning random platforms
+        StopAllCoroutines(); // Stop all coroutines including jewel spawning
     }
 
     #endregion
 
     #region Jewel Spawner
-    public GameObject[] jewelPrefabs;
-    public float minSpawnDelay = 5f, maxSpawnDelay =12f;
-    public int totalJewelsToSpawn = 7;
-
-    private int jewelsSpawned = 0;
-    private float lastPlayformY = 0f;
-    public float spawnOffsetY = 1f; // Offset above the platform to spawn jewels
-
+    
     IEnumerator SpawnJewelRoutine()
     {
         while (jewelsSpawned < totalJewelsToSpawn)
@@ -262,19 +281,29 @@ public class SpawnManager : MonoBehaviour
 
     void TrySpawnJewel()
     {
+        if (!GameManager.Instance.isGameActive)
+        {
+            OnDisable();
+            return;
+        }
+
         //use the most recent platform to spawn the jewel
         GameObject lastPlatform = FindLastPlatform();
         if(lastPlatform == null || !lastPlatform.activeInHierarchy)
         {
             return;
         }
+
         if (!lastPlatform.CompareTag("Ground_Platform"))
         {
             return;
         }
 
-        Vector3 spawnPos = lastPlatform.transform.position + Vector3.up * spawnOffsetY;
-        Collider2D[] hits = Physics2D.OverlapCircleAll(spawnPos, 0.5f);
+        Vector3 localSpawnOffset = new Vector3(0f, spawnOffsetY, 0f);
+        Vector3 worldSpawnPos = lastPlatform.transform.position + localSpawnOffset;
+        //Vector3 spawnPos = lastPlatform.transform.position + Vector3.up * spawnOffsetY;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(worldSpawnPos, 0.5f);
         foreach (var hit in hits)
         {
             if (hit != null && (hit.CompareTag("Gem") || hit.CompareTag("Coin")))
@@ -285,16 +314,16 @@ public class SpawnManager : MonoBehaviour
 
         int randomIndex = Random.Range(0, jewelPrefabs.Length);
         GameObject jewelPrefab = jewelPrefabs[randomIndex];
-
         GameObject jewel = ObjectPooling.Instance.GetPooledObject(jewelPrefab);
 
         if(jewel != null)
         {
-            jewel.transform.position = spawnPos;
-            jewel.transform.rotation = jewelPrefab.transform.rotation; // Reset rotation
-            jewel.transform.SetParent(lastPlatform.transform);
-            jewel.SetActive(true);
+            jewel.transform.SetParent(lastPlatform.transform, false);
+            jewel.transform.localPosition = localSpawnOffset;
+            jewel.transform.localRotation = Quaternion.identity; // Reset rotation
+            jewel.transform.localScale = Vector3.one; // Reset scale
             
+            jewel.SetActive(true);
             jewelsSpawned++;
         }
     }
@@ -319,9 +348,7 @@ public class SpawnManager : MonoBehaviour
     #endregion region
 
     #region Spawn Coin
-    public GameObject coinPrefab;
-    public float coinChance = 0.3f;
-
+    
     public void SpawnCoin(Transform parentPlatform)
     {
         if (Random.value < coinChance)

@@ -6,21 +6,35 @@ public class PlayerController : MonoBehaviour
 {
     public float speed = 8;
     public float jumpForce = 50;
-    public bool isOnGround = false;
     public int maxJumps = 2;      // Total allowed jumps (1 = single jump, 2 = double jump)
+    
+    // Variables to track player state
+    public bool isOnGround = false;
     private float jumpsRemaining; // Number of jumps remaining
-    private float xRange = 14;
-    private float yRange = 15;
     public bool gameOver = false; // Variable to track if the game is over
     public bool win = false; // Variable to track if the player has won
+    
+    private float xRange = 14;
+    private float yRange = 15;
+    
 
     private Rigidbody2D rb2d;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
     public GameObject platform; // Reference to the platform prefab
     public GameManager gameManager;
-    public VerticalPlatformMover mover;
+    //public VerticalPlatformMover mover;
     private Vector2 moveDirection;
+   
+    public AudioClip jumpSound;
+    public AudioClip coinCollection;
+    public AudioClip gemCollection;
+    public AudioClip deathSound;
+    public AudioClip winSound;
+    public AudioClip damageSound;
+
+    public int lives = 3;
+    public int maxLives = 3;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -29,17 +43,21 @@ public class PlayerController : MonoBehaviour
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         jumpsRemaining = maxJumps; // Initialize jumps remaining to max jumps
+        lives = maxLives; // Initialize lives to max lives
+        if(gameManager == null)
+        {
+            gameManager = GameManager.Instance;
+        }
     }
 
     // Update is called once per frame
     void Update()
     {
 
-        //if (transform.position.y < -10)
-        //{
-            //gameOver = true;
-        //}
-
+        if (!GameManager.Instance.isGameActive || gameOver)
+        {
+            return;
+        }
 
         if (transform.position.x < -xRange)
         {
@@ -87,6 +105,17 @@ public class PlayerController : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Ground_Platform"))
         {
+            /**
+            // Check if this platform has spikes as a child
+            Transform spikesChild = collision.transform.Find("Spikes");
+            if (spikesChild != null)
+            {
+                // This platform has spikes - take damage
+                GameManager.Instance.TakeDamage();
+                return; // Don't treat this as a normal platform
+            }
+            **/
+
             isOnGround = true;
             float averageY = 0f;
 
@@ -208,6 +237,9 @@ public class PlayerController : MonoBehaviour
                 cloud.DisableMovement(); // Disable all clouds
             }
 
+        }else if (other.CompareTag("Spikes"))
+        {
+            GameManager.Instance.TakeDamage();
         }
         
     }

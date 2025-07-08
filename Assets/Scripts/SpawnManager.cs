@@ -11,30 +11,23 @@ public class SpawnManager : MonoBehaviour
     #endregion
 
     #region Spawn Parameters
-    public float spawnDistance = 7f;
-    private float spawnY = 8;
-    private float spawnInterval = 3f;
-    private float startDelay = 3f;
-    public float verticalSpacing = 3.8f; // Distance between platform layers
-    
-    public float maxHorizontalJump = 4f; // test in scene view how far player can jump
+    public float spawnDistance = 5f;
+    private float spawnY = 7f;
+    private float spawnInterval = 2f;
+    private float startDelay = 2f;
+    public float verticalSpacing = 2f; // Distance between platform layers
+    public float maxHorizontalJump = 3f; // test in scene view how far player can jump
     #endregion
 
     #region Cleanup Parameters
     public float cleanupDistance = 20f; // Distance from the player to start cleaning up platforms
     #endregion
 
-    
-    private float nextSpawnY = 0f; // Y position for the next platform spawn
-    private PlayerController playerController;
-    
-    
     public GameObject[] jewelPrefabs;
-    public float minSpawnDelay = 5f, maxSpawnDelay =12f;
+    public float minSpawnDelay = 4f, maxSpawnDelay =10f;
     public int totalJewelsToSpawn = 7;
 
     private int jewelsSpawned = 0;
-    private float lastPlayformY = 0f;
     public float spawnOffsetY = 1f; // Offset above the platform to spawn jewels
     
     public GameObject coinPrefab;
@@ -43,31 +36,36 @@ public class SpawnManager : MonoBehaviour
     #region Game Speed Parameters
     public float minSpawnInterval = 1f, maxSpawnInterval = 4f;
     public float spawnSpeed = 1f; // Speed at which platforms are spawned
-    private float currentSpawnInterval;
-    private float spawnTimeElapsed = 0f; // Time elapsed since the last platform spawn
-
-    public float gameSpeedIncreaseRate = 0.1f;
-    public float maxGameSpeed = 5f; // Maximum speed limit for spawning platforms
     
+    private float currentSpawnInterval;
+    private float nextSpawnY = 0f; // Y position for the next platform spawn
+    private PlayerController playerController;
     #endregion
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        // Get reference to player controller
+        Initialize();
+    }
+
+    void Initialize()
+    {
+        // Find player if not assigned
         if (player == null)
         {
-            player = GameObject.Find("Player").transform;
+            GameObject playerObj = GameObject.FindWithTag("Player");
+            if (playerObj != null)
+                player = playerObj.transform;
         }
 
+        // Get player controller
         if (player != null)
         {
             playerController = player.GetComponent<PlayerController>();
         }
 
-        currentSpawnInterval = maxSpawnInterval; // Initialize with max spawn interval
+        currentSpawnInterval = maxSpawnInterval;
         StartCoroutine(WaitForPoolAndStartSpawning());
-        StartCoroutine(SpawnJewelRoutine());
     }
 
     #region Platform spawner
@@ -91,7 +89,8 @@ public class SpawnManager : MonoBehaviour
         }
 
         InvokeRepeating("SpawnPlatform", startDelay, spawnInterval);
-        InvokeRepeating("SpawnRandomPlatform", 4f, 6f);
+        InvokeRepeating("SpawnRandomPlatform", 4f, 5f);
+        StartCoroutine(SpawnJewelRoutine());
     }
 
     void SpawnPlatform()
@@ -109,7 +108,9 @@ public class SpawnManager : MonoBehaviour
         float newY = nextSpawnY + verticalSpacing;
         float playerX = player != null ? player.position.x : 0f;
 
-        float gapBetweenPlatforms = 4f;
+        //-----------------------------------------------
+        //===============================
+        float gapBetweenPlatforms = 3f;
         float baseX = Mathf.Clamp(playerX + Random.Range(-maxHorizontalJump, maxHorizontalJump), -spawnDistance, spawnDistance);
         float offset = Random.Range(gapBetweenPlatforms / 2f, gapBetweenPlatforms);
 
@@ -121,21 +122,27 @@ public class SpawnManager : MonoBehaviour
 
         foreach(float newX in platformPositions)
         {
+            //++++++++++++++++++
+
             int randomIndex = Random.Range(0, platforms.Length);
             GameObject prefab = platforms[randomIndex];
             if (prefab == null)
             {
                 Debug.LogWarning("Selected platform prefab is null.");
-                continue;
+                return;
             }
             // Get a pooled object from the ObjectPooling system
             GameObject platform = ObjectPooling.Instance.GetPooledObject(prefab);
 
             placePlatform(newX, newY, prefab, platform);
+            
+            
+            //++++++++++++++++++++
         }
+        //==============================================
 
         //spawn a third platform far from the thers
-        float minGap = 4f;
+        float minGap = 3.5f;
         bool placed = false;
         int maxTries = 10;
 
@@ -153,7 +160,10 @@ public class SpawnManager : MonoBehaviour
                 placePlatform(candidateX, newY, prefab, platform);
                 placed = true;
             }
+
         }
+        //--------------------------------------------------------
+
 
         if (Random.value < 0.5f) // 50% chance to spawn a cloud
         {
@@ -161,6 +171,17 @@ public class SpawnManager : MonoBehaviour
         }
 
         nextSpawnY = newY;
+    }
+
+    void SpawnSinglePlatform(float x, float y)
+    {
+        int randomIndex = Random.Range(0, platforms.Length);
+        GameObject prefab = platforms[randomIndex];
+
+        if (prefab == null) return;
+
+        GameObject platform = ObjectPooling.Instance.GetPooledObject(prefab);
+        placePlatform(x, y, prefab, platform);
     }
 
     void SpawnCloud(float y)
@@ -197,6 +218,8 @@ public class SpawnManager : MonoBehaviour
 
     void SpawnRandomPlatform(float y)
     {
+        if (!GameManager.Instance.isGameActive) return;
+
         if (platforms == null || platforms.Length == 0) return;
 
         int randomIndex = Random.Range(0, platforms.Length);
@@ -213,11 +236,11 @@ public class SpawnManager : MonoBehaviour
             bool spawnBelow = Random.value < 0.5f; // 50% chance to spawn below the player
             if (spawnBelow)
             {
-                randomY = player.position.y - Random.Range(1f, 3f); // Spawn below the player
+                randomY = player.position.y - Random.Range(1f, 2.5f); // Spawn below the player
             }
             else
             {
-                randomY = player.position.y + Random.Range(1f, 3f); // Spawn above the player
+                randomY = player.position.y + Random.Range(1f, 2.5f); // Spawn above the player
             }
         }
         else
@@ -250,16 +273,26 @@ public class SpawnManager : MonoBehaviour
         VerticalPlatformMover mover = platform.GetComponent<VerticalPlatformMover>();
         if (mover != null)
         {
-            mover.movementType = Random.value < 0.1f
-                ? (Random.value < 0.5f ? VerticalPlatformMover.MovementType.Horizontal : VerticalPlatformMover.MovementType.Vertical)
+            bool shouldMove = Random.value < 0.1f;
+            mover.movementType = shouldMove
+                ? (VerticalPlatformMover.MovementType.Horizontal)
                 : VerticalPlatformMover.MovementType.None;
+
+            if (shouldMove)
+            {
+                mover.ResetPlatform();
+                SpriteRenderer sr = platform.GetComponent<SpriteRenderer>();
+                if (sr != null) sr.color = Color.cyan;
+            }
         }
+
 
         SpawnCoin(platform.transform); // Spawn a coin on the platform
     }
 
     private void OnDisable()
     {
+        //isSpawning = false;
         CancelInvoke("SpawnPlatform"); // Stop spawning platforms when this script is disabled
         CancelInvoke("SpawnRandomPlatform"); // Stop spawning random platforms
         StopAllCoroutines(); // Stop all coroutines including jewel spawning

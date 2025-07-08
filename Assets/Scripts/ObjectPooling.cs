@@ -31,7 +31,7 @@ public class ObjectPooling : MonoBehaviour
         {
             if(item.objectToPool == null)
             {
-                Debug.LogWarning("Object to pool is null, skipping pooling for this item.");
+                //Debug.LogWarning("Object to pool is null, skipping pooling for this item.");
                 continue;
             }
 
@@ -43,7 +43,7 @@ public class ObjectPooling : MonoBehaviour
                 objectList.Add(obj);
             }
             pooledObjects[item.objectToPool] = objectList;
-            Debug.Log($"Pooled {item.amountToPool} instances of {item.objectToPool.name}.");
+            //Debug.Log($"Pooled {item.amountToPool} instances of {item.objectToPool.name}.");
         }
     }
 
@@ -52,37 +52,40 @@ public class ObjectPooling : MonoBehaviour
 
         if (prefab == null)
         {
-            Debug.LogWarning("Prefab is null, cannot get pooled object.");
             return null;
         }
 
         if (pooledObjects.TryGetValue(prefab, out List<GameObject> pool))
         {
-            foreach (var obj in pool)
+            for (int i = pool.Count - 1; i >= 0; i--)
             {
+                GameObject obj = pool[i];
+
+                if (obj == null)
+                {
+                    //Debug.LogWarning($"Found destroyed object in pool for prefab {prefab.name}, removing it.");
+                    pool.RemoveAt(i); // Clean up destroyed reference
+                    continue;
+                }
+
                 if (!obj.activeInHierarchy)
                 {
                     return obj;
                 }
             }
 
+
             // If no inactive object is found, instantiate a new one
             PoolItem item = itemsToPool.Find(i => i.objectToPool == prefab);
 
             if(item == null || !item.canGrow)
             {
-                Debug.LogWarning($"No inactive object found in pool for {prefab.name} and cannot grow the pool.");
                 return null;
             }
             GameObject newObj = Instantiate(prefab);
             newObj.SetActive(false);
             pool.Add(newObj);
             return newObj;
-        }
-        else
-        {
-            Debug.LogWarning($"No pool found for prefab: {prefab.name}");
-
         }
 
         return null;
@@ -124,6 +127,12 @@ public class ObjectPooling : MonoBehaviour
         if (renderer != null)
         {
             renderer.enabled = true; // Ensure renderer is enabled
+        }
+
+        MoveDown moveDown = obj.GetComponent<MoveDown>();
+        if (moveDown != null)
+        {
+            moveDown.ResumeMoving(); // Reset movement if it was disabled
         }
 
         // Reset any other components or properties as needed

@@ -15,39 +15,45 @@ public class VerticalPlatformMover : MonoBehaviour
 
     public float moveRange = 2f; // Distance the platform will move in the specified direction
     public float moveSpeed = 1.5f; // Speed of the platform movement
+    
     private Vector3 startPosition;
     private int direction = 1; // 1 for forward, -1 for backward
     private bool isInitialized = false;
+    private bool movementEnabled = true;
+
+    //public static float globalSpeedMultiplier = 1f;
+
 
     private void OnEnable()
     {
         // Only reset once — useful if pooling
-        if (!isInitialized)
+        if (movementType != MovementType.None)
         {
             ResetPlatform();
         }
-        direction = 1; // Always reset direction when reused
+        
     }
 
-    
+
 
     // Update is called once per frame
     void Update()
     {
-        if (!isInitialized || (movementType == MovementType.None)) return;
+        if (!isInitialized || movementType == MovementType.None) return;
 
-        Vector3 moveAxis = (movementType == MovementType.Horizontal) ? Vector3.right : Vector3.up;
-        transform.Translate(moveAxis * direction * moveSpeed * Time.deltaTime);
+        float offset = Mathf.Sin(Time.time * moveSpeed) * moveRange;
 
-        // Check if the platform has reached the end of its movement range
-        float offset = Vector3.Dot(transform.position - startPosition, moveAxis); // Calculate offset in the movement direction
-        if (Mathf.Abs(offset) >= moveRange)
-        {
-            direction *= -1; // Reverse direction
-        }
+        Vector3 local = transform.localPosition;
+        if (movementType == MovementType.Horizontal)
+            local.x = offset;
+        else if (movementType == MovementType.Vertical)
+            local.y = offset;
+
+        transform.localPosition = local;
     }
 
-    void ResetPlatform()
+
+    public void ResetPlatform()
     {
         startPosition = transform.position; // Reset the start position
         direction = 1; // Reset the direction to forward

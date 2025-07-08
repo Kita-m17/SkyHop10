@@ -2,23 +2,60 @@ using UnityEngine;
 
 public class MoveDown : MonoBehaviour
 {
-    public float speed = 0.2f; // Speed at which the object moves down
-    Vector3 position; // Position of the object
+    private float speed = 0.5f; // Speed at which the object moves down
     private PlayerController playerController; // Reference to the PlayerController script
-    
+    private bool isInitialized = false; // Flag to check if references are initialized
+    private bool isMoving = false;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        position = transform.position; // Initialize the position variable
-        playerController = GameObject.Find("Player").GetComponent<PlayerController>(); // Find the PlayerController in the scene
+        InitializeReferences(); // Initialize references to other components
+    }
+
+    void OnEnable()
+    {
+        InitializeReferences();
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
-        if(!playerController.gameOver) // Check if the game is over
+        // Try to initialize if not done yet
+        if (!isInitialized)
         {
-            transform.Translate(Vector3.down * speed * Time.deltaTime); // Move the object down at a constant speed
-        }    
+            InitializeReferences();
+            if (!isInitialized) return;
+        }
+
+        // Check if game is active and player is not in game over state
+        if (GameManager.Instance == null || !GameManager.Instance.isGameActive) return;
+        if (!isMoving||playerController == null || playerController.gameOver) return;
+
+        // Move object down
+        float effectiveSpeed = speed * GameManager.Instance.gameSpeedMultiplier;
+        transform.Translate(Vector3.down * effectiveSpeed * Time.deltaTime);
+    }
+
+    void InitializeReferences()
+    {
+        isMoving = true;
+        // Find player controller
+        GameObject playerObj = GameObject.FindWithTag("Player");
+        if (playerObj != null)
+        {
+            playerController = playerObj.GetComponent<PlayerController>();
+            isInitialized = true;
+            isMoving = true;
+        }
+    }
+
+    public void StopMoving()
+    {
+        isMoving = false;
+    }
+
+    public void ResumeMoving()
+    {
+        isMoving = true;
     }
 }

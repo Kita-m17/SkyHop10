@@ -16,7 +16,9 @@ public class PlayerController : MonoBehaviour
     
     private float xRange = 14;
     private float yRange = 15;
-    
+
+    public float knockBackForce = 30f;// Force applied when player is knocked back
+    public float knockBackUpwardForce = 20f; // Upward force applied when player is knocked back
 
     private Rigidbody2D rb2d;
     private Animator animator;
@@ -25,13 +27,18 @@ public class PlayerController : MonoBehaviour
     public GameManager gameManager;
     //public VerticalPlatformMover mover;
     private Vector2 moveDirection;
-   
+    private bool hasTriggeredSpikes = false; // Flag to prevent multiple spike triggers
+
+    public AudioSource playerAudio;
     public AudioClip jumpSound;
     public AudioClip coinCollection;
     public AudioClip gemCollection;
     public AudioClip deathSound;
     public AudioClip winSound;
     public AudioClip damageSound;
+    public static PlayerController Instance;
+
+    public ParticleSystem damageParticle; // Particle effect for damage
 
     public int lives = 3;
     public int maxLives = 3;
@@ -41,6 +48,7 @@ public class PlayerController : MonoBehaviour
     {
         rb2d = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        playerAudio = GetComponent<AudioSource>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         jumpsRemaining = maxJumps; // Initialize jumps remaining to max jumps
         lives = maxLives; // Initialize lives to max lives
@@ -54,11 +62,12 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
 
-        if (!GameManager.Instance.isGameActive || gameOver)
+        if (!GameManager.Instance.CanAcceptInput() || gameOver)
         {
             return;
         }
 
+        float topOfScreenY = Camera.main.ViewportToWorldPoint(new Vector3(0, 1, 0)).y;
         if (transform.position.x < -xRange)
         {
             transform.position = new Vector3(-xRange, transform.position.y, transform.position.z);
@@ -66,6 +75,10 @@ public class PlayerController : MonoBehaviour
         else if (transform.position.x > xRange)
         {
             transform.position = new Vector3(xRange, transform.position.y, transform.position.z);
+        }
+        else if (transform.position.y > topOfScreenY)
+        {
+            transform.position = new Vector3(transform.position.x, topOfScreenY, transform.position.z);
         }
 
 
@@ -96,8 +109,22 @@ public class PlayerController : MonoBehaviour
             animator.SetTrigger("jump");
             isOnGround = false;
             jumpsRemaining--;
+            playerAudio.PlayOneShot(jumpSound, 1f); // Play jump sound
         }
 
+    }
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
+        {
+            Debug.Log("Duplicate Player detected — destroying");
+            Destroy(this.gameObject);
+            return;
+        }
+        Instance = this;
+        // Ensure the player is not destroyed on scene load
+        DontDestroyOnLoad(gameObject);
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -163,6 +190,9 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator DestroyCloudAfterDelay(GameObject cloud, float fadeDuration, float delay)
     {
+        // Find the particle system on the cloud (assumes it's a child)
+        ParticleSystem poof = cloud.GetComponentInChildren<ParticleSystem>();
+
         Renderer renderer = cloud.GetComponent<Renderer>();
         PolygonCollider2D collider = cloud.GetComponent<PolygonCollider2D>();
         Material material = renderer.material;
@@ -188,7 +218,10 @@ public class PlayerController : MonoBehaviour
         cloud.GetComponent<MoveCloud>().enabled = false; // Disable the cloud's movement script
         renderer.enabled = false; // Hide the cloud sprite
         collider.enabled = false; // Disable the collider to prevent further interactions
-
+        if (poof != null)
+        {
+            poof.Play(); // Play the particle effect if it exists
+        }
 
         yield return new WaitForSeconds(delay); // Wait for a moment before destroying
 
@@ -209,6 +242,9 @@ public class PlayerController : MonoBehaviour
 
         }
         material.color = colour; // Ensure the sprite color is reset to original
+
+        
+
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -216,31 +252,64 @@ public class PlayerController : MonoBehaviour
         if (other.CompareTag("Gem"))
         {
             other.gameObject.SetActive(false);
+            playerAudio.PlayOneShot(gemCollection, 1f); // Play gem collection sound
         }else if (other.CompareTag("Coin"))
         {
             other.gameObject.SetActive(false);
+            playerAudio.PlayOneShot(coinCollection, 1f); // Play coin collection sound
         }else if(other.CompareTag("DeathZone"))
         {
             gameOver = true;
             win = false;
             GameManager.Instance.GameOver();
-
-            VerticalPlatformMover[] movers = FindObjectsOfType<VerticalPlatformMover>();
-            foreach (VerticalPlatformMover mover in movers)
-            {
-                mover.DisableMovement(); // Disable all vertical platform movers
-            }
-
-            MoveCloud[] clouds = FindObjectsOfType<MoveCloud>();
-            foreach(var cloud in clouds)
-            {
-                cloud.DisableMovement(); // Disable all clouds
-            }
-
         }else if (other.CompareTag("Spikes"))
         {
+            hasTriggeredSpikes = true; // Set flag to prevent multiple triggers
+            playerAudio.PlayOneShot(damageSound, 1f); // Play damage sound
+
+            SetHurt(); // Set hurt animation
             GameManager.Instance.TakeDamage();
+            damageParticle.Play(); // Play damage particle effect
+            ApplyKnowckback(other.transform.position); // Apply knockback effect
+            StartCoroutine(ResetSpikesTrigger()); // Reset the spike trigger after a delay
         }
         
     }
+
+    public void SetHurt()
+    {
+        animator.SetBool("hurt", true); // Set hurt animation
+        animator.SetBool("isDead", false); // Ensure dead animation is not active
+    }
+    public void ResetHurt()
+    {
+        animator.SetBool("hurt", false); // Reset hurt animation
+    }
+
+    public void Dead()
+    {
+        animator.SetBool("win", false);
+        animator.SetBool("isDead", true); // Trigger death animation
+    }
+
+    public void Win()
+    {
+        animator.SetTrigger("win"); // Trigger win animation
+        playerAudio.PlayOneShot(winSound, 1f); // Play win sound
+    }
+
+    private void ApplyKnowckback(Vector3 spikePosition)
+    {
+        Vector2 knockbackDirection = (transform.position - spikePosition).normalized; // Calculate direction away from spike
+        // rb2d.velocity =  new Vector2(knockbackDirection.x * knockBackForce, knockBackUpwardForce); // Apply angular velocity for rotation
+        rb2d.AddForce(knockbackDirection * knockBackForce, ForceMode2D.Impulse); // Apply force in the opposite direction of the spike
+    }
+
+    private System.Collections.IEnumerator ResetSpikesTrigger()
+    {
+        yield return new WaitForSeconds(1f);
+        hasTriggeredSpikes = false;
+        ResetHurt(); // Reset hurt animation after a delay
+    }
+
 }

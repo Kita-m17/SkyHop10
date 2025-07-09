@@ -7,7 +7,7 @@ public class SpawnManager : MonoBehaviour
     #region Spawn Settings
     public GameObject[] platforms;
     public GameObject[] clouds;
-    public Transform player ;
+    public Transform player;
     #endregion
 
     #region Spawn Parameters
@@ -24,19 +24,22 @@ public class SpawnManager : MonoBehaviour
     #endregion
 
     public GameObject[] jewelPrefabs;
-    public float minSpawnDelay = 4f, maxSpawnDelay =10f;
-    public int totalJewelsToSpawn = 7;
+    public float minSpawnDelay = 1f, maxSpawnDelay = 3f;
+    public int totalJewelsToSpawn = 15;
 
     private int jewelsSpawned = 0;
     public float spawnOffsetY = 1f; // Offset above the platform to spawn jewels
-    
+
     public GameObject coinPrefab;
     public float coinChance = 0.3f;
 
+    // Track recently spawned platforms for jewel spawning
+    private System.Collections.Generic.List<GameObject> recentPlatforms = new System.Collections.Generic.List<GameObject>();
+
     #region Game Speed Parameters
-    public float minSpawnInterval = 1f, maxSpawnInterval = 4f;
+    public float minSpawnInterval = 1f, maxSpawnInterval = 3f;
     public float spawnSpeed = 1f; // Speed at which platforms are spawned
-    
+
     private float currentSpawnInterval;
     private float nextSpawnY = 0f; // Y position for the next platform spawn
     private PlayerController playerController;
@@ -79,7 +82,7 @@ public class SpawnManager : MonoBehaviour
         yield return null; //wait for one frame to ensure ObjectPooling is ready
 
         //initialise spawn position
-        if(player != null)
+        if (player != null)
         {
             nextSpawnY = player.position.y + spawnY;
         }
@@ -88,28 +91,35 @@ public class SpawnManager : MonoBehaviour
             nextSpawnY = spawnY; // Fallback if player is not set
         }
 
-        InvokeRepeating("SpawnPlatform", startDelay, spawnInterval);
-        InvokeRepeating("SpawnRandomPlatform", 4f, 5f);
+        //InvokeRepeating("SpawnPlatform", startDelay, spawnInterval);
+        //InvokeRepeating("SpawnRandomPlatform", 3f, 5f);
         StartCoroutine(SpawnJewelRoutine());
     }
 
     void SpawnPlatform()
     {
 
-        if(playerController != null && playerController.gameOver) return; // Don't spawn if game is over
+        if (playerController != null && playerController.gameOver) return; // Don't spawn if game is over
 
-        if(platforms == null || platforms.Length == 0)
+        if (platforms == null || platforms.Length == 0)
         {
-            Debug.LogWarning("No platforms available to spawn.");
             return;
         }
+        // Clamp max increase in Y
+        verticalSpacing = Mathf.Clamp(verticalSpacing + 0.01f * Time.timeSinceLevelLoad, 2f, 4f);
 
         //calculate next spawn position
         float newY = nextSpawnY + verticalSpacing;
+
+
         float playerX = player != null ? player.position.x : 0f;
 
-        //-----------------------------------------------
-        //===============================
+        float maxGap = maxHorizontalJump;
+
+        float safeX = Mathf.Clamp(playerX + Random.Range(-maxGap * 0.5f, maxGap * 0.5f), -spawnDistance, spawnDistance);
+
+        SpawnSinglePlatform(safeX, newY); // Spawn the first platform at a safe X position
+
         float gapBetweenPlatforms = 3f;
         float baseX = Mathf.Clamp(playerX + Random.Range(-maxHorizontalJump, maxHorizontalJump), -spawnDistance, spawnDistance);
         float offset = Random.Range(gapBetweenPlatforms / 2f, gapBetweenPlatforms);
@@ -120,48 +130,42 @@ public class SpawnManager : MonoBehaviour
             Mathf.Clamp(baseX + offset, -spawnDistance, spawnDistance)
         };
 
-        foreach(float newX in platformPositions)
+        foreach (float newX in platformPositions)
         {
-            //++++++++++++++++++
-
-            int randomIndex = Random.Range(0, platforms.Length);
-            GameObject prefab = platforms[randomIndex];
-            if (prefab == null)
-            {
-                Debug.LogWarning("Selected platform prefab is null.");
-                return;
-            }
-            // Get a pooled object from the ObjectPooling system
-            GameObject platform = ObjectPooling.Instance.GetPooledObject(prefab);
-
-            placePlatform(newX, newY, prefab, platform);
-            
-            
-            //++++++++++++++++++++
+            SpawnSinglePlatform(newX, newY);
         }
         //==============================================
 
         //spawn a third platform far from the thers
-        float minGap = 3.5f;
-        bool placed = false;
-        int maxTries = 10;
+        float minGap = 1.5f;
+        
 
-        for(int i = 0; i< maxTries && !placed; i++)
+        // Try to spawn 1-2 additional platforms with controlled gaps
+        int additionalPlatforms = Random.Range(1, 3);
+        for (int i = 0; i < additionalPlatforms; i++)
         {
-            float candidateX = Random.Range(-spawnDistance, spawnDistance);
-            float dist1 = Mathf.Abs(candidateX - platformPositions[0]);
-            float dist2 = Mathf.Abs(candidateX - platformPositions[1]);
+            float candidateX;
+            bool validPosition = false;
+            int attempts = 0;
 
-            if(dist1 >  minGap && dist2 > minGap)
+            do
             {
-                int randomIndex = Random.Range(0, platforms.Length);
-                GameObject prefab = platforms[randomIndex];
-                GameObject platform = ObjectPooling.Instance.GetPooledObject(prefab);
-                placePlatform(candidateX, newY, prefab, platform);
-                placed = true;
-            }
+                candidateX = Random.Range(-spawnDistance, spawnDistance);
+                // Check if this position is reachable from the safe platform or player
+                float distFromSafe = Mathf.Abs(candidateX - safeX);
+                float distFromPlayer = Mathf.Abs(candidateX - playerX);
 
+                validPosition = (distFromSafe >= minGap && distFromSafe <= maxGap) ||
+                               (distFromPlayer >= minGap && distFromPlayer <= maxGap);
+                attempts++;
+            } while (!validPosition && attempts < 10);
+
+            if (validPosition)
+            {
+                SpawnSinglePlatform(candidateX, newY);
+            }
         }
+
         //--------------------------------------------------------
 
 
@@ -198,13 +202,13 @@ public class SpawnManager : MonoBehaviour
         {
             return;
         }
-        
+
         float playerX = player != null ? player.position.x : 0f;
         // Calculate a random horizontal position within the spawn distance
         float x = Mathf.Clamp(playerX + Random.Range(-maxHorizontalJump, maxHorizontalJump), -spawnDistance, spawnDistance);
-        
+
         Vector3 pos = new Vector3(x, y, 0);
-        
+
         // Get a pooled object from the ObjectPooling system
         GameObject cloud = ObjectPooling.Instance.GetPooledObject(prefab);
 
@@ -216,6 +220,21 @@ public class SpawnManager : MonoBehaviour
         }
     }
 
+    void SpawnSinglePlatform(int newX, int newY)
+    {
+        int randomIndex = Random.Range(0, platforms.Length);
+        GameObject prefab = platforms[randomIndex];
+        if (prefab == null)
+        {
+            Debug.LogWarning("Selected platform prefab is null.");
+            return;
+        }
+        // Get a pooled object from the ObjectPooling system
+        GameObject platform = ObjectPooling.Instance.GetPooledObject(prefab);
+
+        placePlatform(newX, newY, prefab, platform);
+    }
+
     void SpawnRandomPlatform(float y)
     {
         if (!GameManager.Instance.isGameActive) return;
@@ -224,7 +243,7 @@ public class SpawnManager : MonoBehaviour
 
         int randomIndex = Random.Range(0, platforms.Length);
         GameObject prefab = platforms[randomIndex];
-        if(prefab == null)
+        if (prefab == null)
         {
             return;
         }
@@ -245,11 +264,11 @@ public class SpawnManager : MonoBehaviour
         }
         else
         {
-            randomY = Random.Range(5f, 15f); // fallback
+            randomY = Random.Range(4f, 15f); // fallback
         }
 
         GameObject platform = ObjectPooling.Instance.GetPooledObject(prefab);
-        
+
         placePlatform(randomX, randomY, prefab, platform);
 
         // Optional: Visual tweak to differentiate
@@ -268,6 +287,17 @@ public class SpawnManager : MonoBehaviour
             platform.transform.position = pos;
             platform.transform.rotation = prefab.transform.rotation;
             platform.SetActive(true);
+
+            // Add to recent platforms list for jewel spawning
+            if (!recentPlatforms.Contains(platform))
+            {
+                recentPlatforms.Add(platform);
+                // Keep only the last 5 platforms for jewel spawning
+                if (recentPlatforms.Count > 5)
+                {
+                    recentPlatforms.RemoveAt(0);
+                }
+            }
         }
 
         VerticalPlatformMover mover = platform.GetComponent<VerticalPlatformMover>();
@@ -301,7 +331,7 @@ public class SpawnManager : MonoBehaviour
     #endregion
 
     #region Jewel Spawner
-    
+
     IEnumerator SpawnJewelRoutine()
     {
         while (jewelsSpawned < totalJewelsToSpawn)
@@ -321,8 +351,8 @@ public class SpawnManager : MonoBehaviour
         }
 
         //use the most recent platform to spawn the jewel
-        GameObject lastPlatform = FindLastPlatform();
-        if(lastPlatform == null || !lastPlatform.activeInHierarchy)
+        GameObject lastPlatform = GetRandomRecentPlatform();
+        if (lastPlatform == null || !lastPlatform.activeInHierarchy)
         {
             return;
         }
@@ -341,7 +371,7 @@ public class SpawnManager : MonoBehaviour
         {
             if (hit != null && (hit.CompareTag("Gem") || hit.CompareTag("Coin")))
             {
-                return; // skip this coin spawn
+                return; // skip this spawn
             }
         }
 
@@ -349,13 +379,13 @@ public class SpawnManager : MonoBehaviour
         GameObject jewelPrefab = jewelPrefabs[randomIndex];
         GameObject jewel = ObjectPooling.Instance.GetPooledObject(jewelPrefab);
 
-        if(jewel != null)
+        if (jewel != null)
         {
             jewel.transform.SetParent(lastPlatform.transform, false);
             jewel.transform.localPosition = localSpawnOffset;
             jewel.transform.localRotation = Quaternion.identity; // Reset rotation
             jewel.transform.localScale = Vector3.one; // Reset scale
-            
+
             jewel.SetActive(true);
             jewelsSpawned++;
         }
@@ -378,10 +408,23 @@ public class SpawnManager : MonoBehaviour
 
         return highest;
     }
+
+    GameObject GetRandomRecentPlatform()
+    {
+        // Clean up inactive platforms from the list
+        recentPlatforms.RemoveAll(platform => platform == null || !platform.activeInHierarchy);
+
+        if (recentPlatforms.Count == 0)
+        {
+            return FindLastPlatform(); // Fallback to old method
+        }
+
+        return recentPlatforms[Random.Range(0, recentPlatforms.Count)];
+    }
     #endregion region
 
     #region Spawn Coin
-    
+
     public void SpawnCoin(Transform parentPlatform)
     {
         if (Random.value < coinChance)
@@ -391,7 +434,7 @@ public class SpawnManager : MonoBehaviour
             Collider2D[] hits = Physics2D.OverlapCircleAll(spawnPosition, 0.5f);
             foreach (var hit in hits)
             {
-                if (hit != null &&  (hit.CompareTag("Gem") || hit.CompareTag("Coin")))
+                if (hit != null && (hit.CompareTag("Gem") || hit.CompareTag("Coin")))
                 {
                     return; // skip this coin spawn
                 }
@@ -399,7 +442,7 @@ public class SpawnManager : MonoBehaviour
             GameObject coin = ObjectPooling.Instance.GetPooledObject(coinPrefab);
             if (coin != null)
             {
-                
+
                 coin.transform.position = spawnPosition;
                 coin.transform.rotation = Quaternion.identity; // Reset rotation
                 coin.transform.SetParent(parentPlatform);

@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class MoveDown : MonoBehaviour
 {
-    private float speed = 0.5f; // Speed at which the object moves down
+    public float speed = 0.8f; // Speed at which the object moves down
     private PlayerController playerController; // Reference to the PlayerController script
     private bool isInitialized = false; // Flag to check if references are initialized
     private bool isMoving = false;

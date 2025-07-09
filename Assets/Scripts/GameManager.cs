@@ -5,16 +5,17 @@ using TMPro;
 
 public class GameManager : MonoBehaviour
 {
-    public bool isGameActive = true; // Flag to check if the game is active
+    public bool isGameActive = false; // Start as false - game only active after button press
+    public bool isGameStarted = false; // Track if game has been started at least once
 
     private int jewelsCollected = 0;
-    private int totalJewels = 7;
+    public int totalJewels = 7;
     public float gameSpeedMultiplier = 1f;
     public int coinScore = 0;
     public float spawnRate;
 
     private int maxLives = 3; // Maximum number of lives the player can have
-    public int lives = 3; // Current number of lives the player has
+    private int lives = 3; // Current number of lives the player has
 
     public bool win = false;
 
@@ -29,11 +30,30 @@ public class GameManager : MonoBehaviour
     public Image heart2;
     public Image heart3;
 
+    private bool canTakeDamage = true;
+    public float damageImmunityTime = 1f; // 1 second of immunity after taking damage
+
+    public GameObject gameplayRoot; // Assign in Inspector - contains all gameplay elements (player, spawners, etc.)
+    public GameObject uiRoot;       // Optional: non-title UI (score, lives, etc.)
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        spawnRate = 0.2f;
-        if(coinScoreText != null)
+        // Ensure game starts in inactive state
+        isGameActive = false;
+        isGameStarted = false;
+        // Disable gameplay until difficulty is selected
+        if (gameplayRoot != null) gameplayRoot.SetActive(false);
+        if (uiRoot != null) uiRoot.SetActive(false);
+        // Ensure title screen is visible
+        if (titleScreen != null) titleScreen.SetActive(true);
+
+        spawnRate = 0.5f;
+        // Hide game over elements initially
+        if (gameOverText != null) gameOverText.gameObject.SetActive(false);
+        if (restartButton != null) restartButton.gameObject.SetActive(false);
+
+        if (coinScoreText != null)
         {
             coinScoreText.text = "Score: " + coinScore;
         }
@@ -42,6 +62,8 @@ public class GameManager : MonoBehaviour
         {
             jewelsText.text = "Gems: " + jewelsCollected + "/" + totalJewels;
         }
+
+        UpdateLivesDisplay(); // Update the hearts display
     }
 
     private void Awake()
@@ -59,13 +81,8 @@ public class GameManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        //if (!playerController.gameOver) // Check if the game is over
-        //{
-            //transform.Translate(Vector3.down * speed * GameManager.Instance.gameSpeedMultiplier * Time.deltaTime);
-            // Remove the debug log as it's spamming
-        //}
-
-        if(jewelsCollected >= totalJewels && !win)
+        // Only check win condition if game is active and started
+        if (isGameActive && isGameStarted && jewelsCollected >= totalJewels && !win)
         {
             win = true; // Set win to true when all jewels are collected
             WinGame(); // Call GameOver method to handle win condition
@@ -74,6 +91,9 @@ public class GameManager : MonoBehaviour
 
     public void CollectJewel()
     {
+        // Only collect jewels if game is active
+        if (!isGameActive || !isGameStarted) return;
+
         jewelsCollected++;
         UpdateJewel(); // Update the UI text with the new jewels collected
 
@@ -86,6 +106,9 @@ public class GameManager : MonoBehaviour
 
     public void AddScore()
     {
+        // Only collect jewels if game is active
+        if (!isGameActive || !isGameStarted) return;
+
         coinScore ++;
         UpdateCoinScore(); // Update the UI text with the new score
     }
@@ -113,16 +136,28 @@ public class GameManager : MonoBehaviour
 
     public void TakeDamage()
     {
+        if (!canTakeDamage || !isGameActive) return; // Don't take damage if on cooldown or game not active
+
         if (lives > 0)
         {
             lives--;
             UpdateLivesDisplay();
+
+            // Start damage immunity period
+            canTakeDamage = false;
+            StartCoroutine(DamageImmunityCoroutine());
 
             if (lives <= 0)
             {
                 GameOver();
             }
         }
+    }
+
+    private System.Collections.IEnumerator DamageImmunityCoroutine()
+    {
+        yield return new WaitForSeconds(damageImmunityTime);
+        canTakeDamage = true;
     }
 
     public void WinGame()
@@ -139,6 +174,10 @@ public class GameManager : MonoBehaviour
             restartButton.gameObject.SetActive(true); // Show the restart button
         }
 
+        PlayerController playerController = FindObjectOfType<PlayerController>();
+        if (playerController != null)
+            playerController.Win();
+
     }
 
     public void GameOver()
@@ -147,6 +186,26 @@ public class GameManager : MonoBehaviour
         gameOverText.gameObject.SetActive(true); // Show the game over text
         win = false;
         isGameActive = false; // Set the game active flag to false
+
+
+        VerticalPlatformMover[] movers = FindObjectsOfType<VerticalPlatformMover>();
+        foreach (VerticalPlatformMover mover in movers)
+        {
+            mover.DisableMovement(); // Disable all vertical platform movers
+        }
+
+        MoveCloud[] clouds = FindObjectsOfType<MoveCloud>();
+        foreach (var cloud in clouds)
+        {
+            cloud.DisableMovement(); // Disable all clouds
+        }
+
+        PlayerController playerController = FindObjectOfType<PlayerController>();
+        if (playerController != null)
+        {
+            playerController.playerAudio.PlayOneShot(playerController.deathSound, 1.0f); // Play the game over sound
+            playerController.Dead(); // Call the Die method on the player controller to handle death
+        }
     }
 
     public void RestartGame()
@@ -171,7 +230,14 @@ public class GameManager : MonoBehaviour
         jewelsCollected = 0;
         coinScore = 0;
         win = false;
-        isGameActive = true;
+        isGameActive = false;
+        isGameStarted = false; // Reset started flag
+        canTakeDamage = true; // Reset damage immunity
+
+        // Hide game over UI
+        if (gameOverText != null) gameOverText.gameObject.SetActive(false);
+        if (restartButton != null) restartButton.gameObject.SetActive(false);
+
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the current scene
     }
@@ -180,15 +246,31 @@ public class GameManager : MonoBehaviour
     {
         if (titleScreen != null)
             titleScreen.gameObject.SetActive(false); // Hide the title screen UI
-        
+
+        if (gameplayRoot != null)
+            gameplayRoot.SetActive(true); // Enable gameplay
+
+        if (uiRoot != null)
+            uiRoot.SetActive(true); // Show HUD
+
         isGameActive = true; // Set the game active flag to true
+        isGameStarted = true;
         jewelsCollected = 0; // Initialize jewels collected
         coinScore = 0; // Initialize score
         win = false;
         lives = maxLives; // Reset lives to maximum
+        canTakeDamage = true; // Reset damage immunity
 
-        spawnRate /= difficulty; // Adjust spawn rate based on difficulty
+        spawnRate = Mathf.Clamp(1f/difficulty, 0.3f, 1f); // Adjust spawn rate based on difficulty
         
+        SpawnManager2 spawnManager = FindObjectOfType<SpawnManager2>();
+        if (spawnManager != null)
+        {
+            spawnManager.minSpawnDelay *= difficulty;
+            spawnManager.maxSpawnDelay *= difficulty;
+            spawnManager.Initialize();
+        }
+
         UpdateCoinScore(); // Ensure the score is displayed correctly at the start
         UpdateJewel(); // Ensure the jewels collected text is displayed correctly at the start
         UpdateLivesDisplay();
@@ -200,5 +282,11 @@ public class GameManager : MonoBehaviour
             jewelsText.text = "Gems: " + jewelsCollected + "/" + totalJewels;
 
         
+    }
+
+    // Helper method to check if game can accept input
+    public bool CanAcceptInput()
+    {
+        return isGameActive && isGameStarted;
     }
 }

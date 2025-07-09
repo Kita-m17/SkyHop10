@@ -20,9 +20,8 @@ public class VerticalPlatformMover : MonoBehaviour
     private int direction = 1; // 1 for forward, -1 for backward
     private bool isInitialized = false;
     private bool movementEnabled = true;
-
-    //public static float globalSpeedMultiplier = 1f;
-
+    public float speed = 1f;
+    private Rigidbody2D rb;
 
     private void OnEnable()
     {
@@ -34,52 +33,41 @@ public class VerticalPlatformMover : MonoBehaviour
         
     }
 
+    void Awake()
+    {
+        rb = GetComponent<Rigidbody2D>();
+    }
 
 
-    // Update is called once per frame
     void Update()
     {
-        if (!isInitialized || movementType == MovementType.None) return;
+        if (!isInitialized)
+        {
+            return;
+        }
 
-        float offset = Mathf.Sin(Time.time * moveSpeed) * moveRange;
-
-        Vector3 local = transform.localPosition;
-        if (movementType == MovementType.Horizontal)
-            local.x = offset;
+        //transform.Translate(Vector3.right * direction * speed * Time.deltaTime);
+        float distanceFromStart;
+        if (movementType == MovementType.Horizontal) {
+            transform.Translate(Vector3.right * direction * speed * Time.deltaTime);
+            distanceFromStart = transform.position.x - startPosition.x;
+            if (Mathf.Abs(distanceFromStart) >= moveRange)
+            {
+                direction *= -1; //reverse direction
+            }
+        }
         else if (movementType == MovementType.Vertical)
-            local.y = offset;
-
-        transform.localPosition = local;
-    }
-
-
-    public void ResetPlatform()
-    {
-        startPosition = transform.position; // Reset the start position
-        direction = 1; // Reset the direction to forward
-        isInitialized = true;
-
-        Renderer renderer = GetComponent<Renderer>();
-        if (renderer != null)
         {
-            renderer.enabled = true; // Ensure the platform is visible
+            transform.Translate(Vector3.up * direction * speed * Time.deltaTime);
+            distanceFromStart = transform.position.y - startPosition.y;
+            if (Mathf.Abs(distanceFromStart) >= moveRange)
+            {
+                direction *= -1; //reverse direction
+            }
         }
 
-        Collider2D collider = GetComponent<Collider2D>();
-        if (collider != null)
-        {
-            collider.enabled = true; // Ensure the collider is enabled
-        }
-    }
 
-    public void DisableMovement()
-    {
-        enabled = false; // Disable the movement script
-    }
-
-    public void EnableMovement()
-    {
-        enabled = true; // Enable the movement script
+        
     }
 
     private void OnCollisionEnter2D(Collision2D collision)
@@ -87,6 +75,42 @@ public class VerticalPlatformMover : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground_Platform") || collision.gameObject.CompareTag("Cloud_Platform"))
         {
             direction *= -1;
+        }
+    }
+
+    // Method to disable the cloud (called from PlayerController)
+    public void DisableMovement()
+    {
+        enabled = false;
+    }
+
+    // Method to enable the cloud movement
+    public void EnableMovement()
+    {
+        enabled = true;
+    }
+
+    public void ResetPlatform()
+    {
+        startPosition = transform.position;
+        direction = 1;
+        isInitialized = true;
+
+        Renderer renderer = GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            renderer.enabled = true;
+            if (renderer.material != null)
+            {
+                Color colour = renderer.material.color;
+                renderer.material.color = new Color(colour.r, colour.g, colour.b, 1f);
+            }
+        }
+
+        Collider2D collider = GetComponent<Collider2D>();
+        if (collider != null)
+        {
+            collider.enabled = true;
         }
     }
 

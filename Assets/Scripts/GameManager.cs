@@ -33,17 +33,15 @@ public class GameManager : MonoBehaviour
 
     private bool canTakeDamage = true;
     public float damageImmunityTime = 1f; // 1 second of immunity after taking damage
+    private bool restart = false;
 
     public GameObject gameplayRoot; // Assign in Inspector - contains all gameplay elements (player, spawners, etc.)
     public GameObject uiRoot;       // Optional: non-title UI (score, lives, etc.)
 
-
-    public GameObject startScreen;
-    public GameObject instructionScreen;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        startScreen.SetActive(true); // Show the start screen initially
+        titleScreen.SetActive(true);
         // Ensure game starts in inactive state
         isGameActive = false;
         isGameStarted = false;
@@ -81,21 +79,6 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject); // Ensure only one instance exists
         }
-    }
-
-    public void ShowInstructions()
-    {
-        startScreen.SetActive(false); // Hide the start screen
-        instructionScreen.SetActive(true); // Show the instructions screen
-    }
-
-    public void ShowDifficultyScreen()
-    {
-        startScreen.SetActive(false); // Hide the start screen
-        instructionScreen.SetActive(false); // Show the instructions screen
-        // Ensure title screen is visible
-        if (titleScreen != null) titleScreen.SetActive(true);
-
     }
 
     // Update is called once per frame
@@ -259,7 +242,7 @@ public class GameManager : MonoBehaviour
         // Hide game over UI
         if (gameOverText != null) gameOverText.gameObject.SetActive(false);
         if (restartButton != null) restartButton.gameObject.SetActive(false);
-
+        restart = true;
 
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the current scene
     }
@@ -274,7 +257,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGame(int difficulty)
     {
-        instructionScreen.SetActive(false); // Hide the instructions screen
+        
 
         if (titleScreen != null)
             titleScreen.gameObject.SetActive(false); // Hide the title screen UI

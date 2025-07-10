@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class DestroyOutOfBounds : MonoBehaviour
 {
-    public float lowerBoundY = -15f; // Y position below which the object will be destroyed
+    public float lowerBoundY = -20f; // Y position below which the object will be destroyed
     public bool usePlayerReference = true; // Whether to use the player's position to determine when to destroy the object
     public float offsetFromPlayer = 5f; // Offset from the player's position to determine when to destroy the object
 
@@ -18,12 +18,12 @@ public class DestroyOutOfBounds : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float bottomOfScreenY = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, 0)).y;
-        float cleanUpY = lowerBoundY;
+        float screenBottomY = Camera.main.ViewportToWorldPoint(new Vector3(0, 0, 0)).y;
 
-        if (transform.position.y < cleanUpY)
+        Renderer rend = GetComponent<Renderer>();
+        if (rend != null && rend.bounds.max.y < screenBottomY - 1f) // give buffer
         {
-           CleanUpObject(); // Destroy the object if it goes out of bounds
+            CleanUpObject();
         }
     }
 

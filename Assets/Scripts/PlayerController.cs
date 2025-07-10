@@ -129,14 +129,72 @@ public class PlayerController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             spriteRenderer.flipX = true;
-            dashSpriteRenderer.flipX = true; // Flip dash sprite as well
+            if (dash != null)
+            {
+                Vector3 scale = dash.transform.localScale;
+                scale.x = -Mathf.Abs(scale.x); // Face left
+                dash.transform.localScale = scale;
+
+            }
+
+            // Update dashwind position every frame
+            if (dash != null)
+            {
+                float offsetX = 1.0f; // Adjust how far behind the player
+                float offsetY = -0.8f; // Optional vertical offset
+
+                Vector3 dashPos = transform.position;
+                if (spriteRenderer.flipX)
+                {
+                    dashPos.x += offsetX; // Behind if facing left
+                    dash.transform.localScale = new Vector3(-Mathf.Abs(dash.transform.localScale.x), dash.transform.localScale.y, dash.transform.localScale.z);
+                }
+                else
+                {
+                    dashPos.x -= offsetX; // Behind if facing right
+                    dash.transform.localScale = new Vector3(Mathf.Abs(dash.transform.localScale.x), dash.transform.localScale.y, dash.transform.localScale.z);
+                }
+
+                dashPos.y += offsetY;
+                dash.transform.position = dashPos;
+            }
+
         }
         else if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             spriteRenderer.flipX = false;
-            dashSpriteRenderer.flipX = false; // Flip dash sprite as well
+            if (dash != null)
+            {
+                Vector3 scale = dash.transform.localScale;
+                scale.x = Mathf.Abs(scale.x); // Face right
+                dash.transform.localScale = scale;
+            }
+
+
+            // Update dashwind position every frame
+            if (dash != null)
+            {
+                float offsetX = 1.0f; // Adjust how far behind the player
+                float offsetY = -0.8f; // Optional vertical offset
+
+                Vector3 dashPos = transform.position;
+                if (spriteRenderer.flipX)
+                {
+                    dashPos.x += offsetX; // Behind if facing left
+                    dash.transform.localScale = new Vector3(-Mathf.Abs(dash.transform.localScale.x), dash.transform.localScale.y, dash.transform.localScale.z);
+                }
+                else
+                {
+                    dashPos.x -= offsetX; // Behind if facing right
+                    dash.transform.localScale = new Vector3(Mathf.Abs(dash.transform.localScale.x), dash.transform.localScale.y, dash.transform.localScale.z);
+                }
+
+                dashPos.y += offsetY;
+                dash.transform.position = dashPos;
+            }
 
         }
+
 
         if (Input.GetKeyDown(KeyCode.Space) && jumpsRemaining > 0)
         {

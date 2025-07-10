@@ -68,7 +68,7 @@ public class SpawnManager2 : MonoBehaviour
 
         InvokeRepeating(nameof(SpawnPlatform), startDelay, spawnInterval);
         InvokeRepeating(nameof(SpawnRandomPlatform), 4f, 5f); // Random platform spawner
-        InvokeRepeating(nameof(SpawnPowerup), 2f, 8f); // Powerup spawner
+        InvokeRepeating(nameof(SpawnPowerup), 5f, 8f); // Powerup spawner
         StartCoroutine(SpawnJewelRoutine());
     }
     void SpawnPlatform()
@@ -92,8 +92,8 @@ public class SpawnManager2 : MonoBehaviour
 
         List<float> usedX = new List<float>();
 
-        float minGap = 2.5f; // Minimum gap between platforms
-        float maxGap = 4f; // Maximum gap between platforms
+        float minGap = 3f; // Minimum gap between platforms
+        float maxGap = 4.5f; // Maximum gap between platforms
 
         float safeX = Mathf.Clamp(playerX + Random.Range(-maxGap * 0.5f, maxGap * 0.5f), -xRange, xRange);
 

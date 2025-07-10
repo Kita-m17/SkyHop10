@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public float gameSpeedMultiplier = 1f;
     public int coinScore = 0;
     public float spawnRate;
+    public float baseSpawnInterval = 1.5f; // Base spawn interval for enemies and items
 
     private int maxLives = 3; // Maximum number of lives the player can have
     private int lives = 3; // Current number of lives the player has
@@ -36,9 +37,13 @@ public class GameManager : MonoBehaviour
     public GameObject gameplayRoot; // Assign in Inspector - contains all gameplay elements (player, spawners, etc.)
     public GameObject uiRoot;       // Optional: non-title UI (score, lives, etc.)
 
+
+    public GameObject startScreen;
+    public GameObject instructionScreen;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
+        startScreen.SetActive(true); // Show the start screen initially
         // Ensure game starts in inactive state
         isGameActive = false;
         isGameStarted = false;
@@ -46,7 +51,7 @@ public class GameManager : MonoBehaviour
         if (gameplayRoot != null) gameplayRoot.SetActive(false);
         if (uiRoot != null) uiRoot.SetActive(false);
         // Ensure title screen is visible
-        if (titleScreen != null) titleScreen.SetActive(true);
+        //if (titleScreen != null) titleScreen.SetActive(true);
 
         spawnRate = 0.5f;
         // Hide game over elements initially
@@ -68,7 +73,7 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        if(Instance == null)
+        if (Instance == null)
         {
             Instance = this;
         }
@@ -76,6 +81,21 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject); // Ensure only one instance exists
         }
+    }
+
+    public void ShowInstructions()
+    {
+        startScreen.SetActive(false); // Hide the start screen
+        instructionScreen.SetActive(true); // Show the instructions screen
+    }
+
+    public void ShowDifficultyScreen()
+    {
+        startScreen.SetActive(false); // Hide the start screen
+        instructionScreen.SetActive(false); // Show the instructions screen
+        // Ensure title screen is visible
+        if (titleScreen != null) titleScreen.SetActive(true);
+
     }
 
     // Update is called once per frame
@@ -136,8 +156,10 @@ public class GameManager : MonoBehaviour
 
     public void TakeDamage()
     {
-        if (!canTakeDamage || !isGameActive) return; // Don't take damage if on cooldown or game not active
+        PlayerController playerController = FindObjectOfType<PlayerController>();
 
+        if (!canTakeDamage || !isGameActive) return; // Don't take damage if on cooldown or game not active
+        if (playerController.isInvincible) return;
         if (lives > 0)
         {
             lives--;
@@ -242,8 +264,18 @@ public class GameManager : MonoBehaviour
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // Reload the current scene
     }
 
+    public void SpeedUp(float amount)
+    {
+        gameSpeedMultiplier *= amount; // Increase the game speed multiplier
+        gameSpeedMultiplier = Mathf.Clamp(gameSpeedMultiplier, 1f, 3f); // Clamp the speed to a reasonable range
+    }
+
+
+
     public void StartGame(int difficulty)
     {
+        instructionScreen.SetActive(false); // Hide the instructions screen
+
         if (titleScreen != null)
             titleScreen.gameObject.SetActive(false); // Hide the title screen UI
 
@@ -260,6 +292,9 @@ public class GameManager : MonoBehaviour
         win = false;
         lives = maxLives; // Reset lives to maximum
         canTakeDamage = true; // Reset damage immunity
+        totalJewels += difficulty; // Increase total jewels based on difficulty
+
+        gameSpeedMultiplier = 1f + (difficulty - 1) * 0.5f;
 
         spawnRate = Mathf.Clamp(1f/difficulty, 0.3f, 1f); // Adjust spawn rate based on difficulty
         
@@ -268,6 +303,10 @@ public class GameManager : MonoBehaviour
         {
             spawnManager.minSpawnDelay *= difficulty;
             spawnManager.maxSpawnDelay *= difficulty;
+
+            float adjustedSpawnInterval = baseSpawnInterval / (difficulty * GameManager.Instance.gameSpeedMultiplier);
+            spawnManager.spawnInterval = Mathf.Clamp(adjustedSpawnInterval, 0.2f, 2f);
+
             spawnManager.Initialize();
         }
 

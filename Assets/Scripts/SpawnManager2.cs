@@ -10,6 +10,9 @@ public class SpawnManager2 : MonoBehaviour
     public GameObject[] clouds;
     public GameObject gems;
     public GameObject coinPrefab;
+    public GameObject mushroomPrefab;
+    public float mushroomSpawnChance = 0.1f; // 20% chance to spawn a mushroom
+
     public PlayerController playerController; // Reference to the PlayerController script
     public Transform player;
     private float xRange = 8f; // Range for spawning platforms on the x-axis
@@ -42,6 +45,11 @@ public class SpawnManager2 : MonoBehaviour
         Initialize();
     }
 
+    void Update()
+    {
+        if(!GameManager.Instance.isGameActive) return;
+    }
+
     public void Initialize()
     {
         // Find player if not assigned
@@ -60,7 +68,7 @@ public class SpawnManager2 : MonoBehaviour
 
         InvokeRepeating(nameof(SpawnPlatform), startDelay, spawnInterval);
         InvokeRepeating(nameof(SpawnRandomPlatform), 4f, 5f); // Random platform spawner
-
+        InvokeRepeating(nameof(SpawnPowerup), 2f, 8f); // Powerup spawner
         StartCoroutine(SpawnJewelRoutine());
     }
     void SpawnPlatform()
@@ -165,7 +173,7 @@ public class SpawnManager2 : MonoBehaviour
                 // 10% chance to move horizontally
                 mover.movementType = VerticalPlatformMover.MovementType.Horizontal;
             }
-            else if (random < 0.05f)
+            else if (random < 0.2f)
             {
                 // Next 10% chance to move vertically
                 mover.movementType = VerticalPlatformMover.MovementType.Vertical;
@@ -245,6 +253,29 @@ public class SpawnManager2 : MonoBehaviour
         }
     }
 
+    public void SpawnPowerup()
+    {
+        if (mushroomPrefab == null)
+        {
+            return;
+        }
+
+        if (Random.value < mushroomSpawnChance)
+        {
+            float randomX = Random.Range(-xRange, xRange);
+            float y = 9f;
+            GameObject powerUp = Instantiate(mushroomPrefab, new Vector3(randomX, y, 0), Quaternion.identity);
+
+            PowerUpManager powerUpManager = powerUp.GetComponent<PowerUpManager>();
+            if (powerUpManager != null)
+            {
+                // Randomly select one of the 4 types (excluding None)
+                int randomIndex = Random.Range(1, 5); // 1 to 4 inclusive
+                powerUpManager.powerUpType = (PowerUpManager.PowerUpType)randomIndex;
+
+            }
+        }
+    }
     public void SpawnCoin(Transform parentPlatform)
     {
         if (Random.value < coinChance)
@@ -354,5 +385,7 @@ public class SpawnManager2 : MonoBehaviour
         return recentPlatforms[Random.Range(0, recentPlatforms.Count)];
     }
     #endregion region
+
+
 
 }

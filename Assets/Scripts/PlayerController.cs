@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Collections;
+using static PowerUpManager;
 
 public class PlayerController : MonoBehaviour
 {
@@ -38,16 +39,39 @@ public class PlayerController : MonoBehaviour
     public AudioClip damageSound;
     public static PlayerController Instance;
 
+    public GameObject dash;
+    private Animator dashwindAnimator;
+    private SpriteRenderer dashSpriteRenderer; // Reference to the dash sprite renderer
+
     public ParticleSystem damageParticle; // Particle effect for damage
 
     public int lives = 3;
     public int maxLives = 3;
+
+    public bool isInvincible = false;
+    private float originalSpeed;
+    private float originalJump;
+    private Coroutine powerUpRoutine;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
         rb2d = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        if (dash != null)
+        {
+            dashwindAnimator = dash.GetComponent<Animator>();
+        }
+        if (dashwindAnimator != null)
+        {
+            dashwindAnimator.SetBool("isMoving", false); // Set dash animation to not moving initially
+        }
+        if(dashSpriteRenderer != null)
+        {
+            dashSpriteRenderer = dash.GetComponent<SpriteRenderer>();
+        }
+         // Ensure the player is not destroyed on scene load
+
         playerAudio = GetComponent<AudioSource>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         jumpsRemaining = maxJumps; // Initialize jumps remaining to max jumps
@@ -83,33 +107,48 @@ public class PlayerController : MonoBehaviour
 
 
         transform.Translate(Vector3.right * speed * Input.GetAxis("Horizontal") * Time.deltaTime);
-        if (rb2d.linearVelocity.magnitude > 0.01f)
+        /**
+        Vector2 velocity = rb2d.velocity;
+        velocity.x = Input.GetAxis("Horizontal") * speed;
+        rb2d.velocity = velocity;
+        **/
+        if (Mathf.Abs(rb2d.linearVelocity.x) > 0.01f || Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
         {
             animator.SetBool("isWalking", true);
+            dashwindAnimator.SetBool("isMoving", true); // Set dash animation to moving
+            dashwindAnimator.gameObject.SetActive(true);
         }
         else
         {
             animator.SetBool("isWalking", false);
+            dashwindAnimator.SetBool("isMoving", false); // Set dash animation to not moving
+            dashwindAnimator.gameObject.SetActive(false);
         }
 
         // Flip sprite ONLY if Left Arrow is explicitly pressed
         if (Input.GetKeyDown(KeyCode.LeftArrow))
         {
             spriteRenderer.flipX = true;
+            dashSpriteRenderer.flipX = true; // Flip dash sprite as well
         }
         else if (Input.GetKeyDown(KeyCode.RightArrow))
         {
             spriteRenderer.flipX = false;
+            dashSpriteRenderer.flipX = false; // Flip dash sprite as well
+
         }
 
         if (Input.GetKeyDown(KeyCode.Space) && jumpsRemaining > 0)
         {
             rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, 0); // Reset vertical velocity
             rb2d.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+
             animator.SetTrigger("jump");
             isOnGround = false;
             jumpsRemaining--;
             playerAudio.PlayOneShot(jumpSound, 1f); // Play jump sound
+            dashwindAnimator.SetBool("isMoving", false); // Set dash animation to not moving
+            dashwindAnimator.gameObject.SetActive(false);
         }
 
     }
@@ -118,7 +157,7 @@ public class PlayerController : MonoBehaviour
     {
         if (Instance != null && Instance != this)
         {
-            Debug.Log("Duplicate Player detected — destroying");
+            Debug.Log("Duplicate Player detected ï¿½ destroying");
             Destroy(this.gameObject);
             return;
         }
@@ -132,16 +171,6 @@ public class PlayerController : MonoBehaviour
 
         if (collision.gameObject.CompareTag("Ground_Platform"))
         {
-            /**
-            // Check if this platform has spikes as a child
-            Transform spikesChild = collision.transform.Find("Spikes");
-            if (spikesChild != null)
-            {
-                // This platform has spikes - take damage
-                GameManager.Instance.TakeDamage();
-                return; // Don't treat this as a normal platform
-            }
-            **/
 
             isOnGround = true;
             float averageY = 0f;
@@ -272,6 +301,9 @@ public class PlayerController : MonoBehaviour
             damageParticle.Play(); // Play damage particle effect
             ApplyKnowckback(other.transform.position); // Apply knockback effect
             StartCoroutine(ResetSpikesTrigger()); // Reset the spike trigger after a delay
+        }else if (other.CompareTag("Powerup")){
+            ActivatePowerUp(other.GetComponent<PowerUpManager>().powerUpType, other.GetComponent<PowerUpManager>().duration);
+            other.gameObject.SetActive(false);
         }
         
     }
@@ -311,5 +343,49 @@ public class PlayerController : MonoBehaviour
         hasTriggeredSpikes = false;
         ResetHurt(); // Reset hurt animation after a delay
     }
+
+    public void ActivatePowerUp(PowerUpType type, float duration)
+    {
+        if (powerUpRoutine != null)
+        {
+            StopCoroutine(powerUpRoutine); // Only one at a time (optional)
+        }
+        powerUpRoutine = StartCoroutine(ApplyPowerUp(type, duration));
+    }
+
+    private IEnumerator ApplyPowerUp(PowerUpType type, float duration)
+    {
+        originalSpeed = speed;
+        originalJump = jumpForce;
+
+        switch (type)
+        {
+            case PowerUpType.ExtraJump:
+                maxJumps = 3;
+                break;
+
+            case PowerUpType.SpeedBoost:
+                speed *= 1.5f;
+                break;
+
+            case PowerUpType.Invincibility:
+                isInvincible = true;
+                break;
+
+            case PowerUpType.SlowMotion:
+                Time.timeScale = 0.5f;
+                break;
+        }
+
+        yield return new WaitForSecondsRealtime(duration);
+
+        // Revert effects
+        maxJumps = 2;
+        speed = originalSpeed;
+        jumpForce = originalJump;
+        isInvincible = false;
+        Time.timeScale = 1f;
+    }
+
 
 }

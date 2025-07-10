@@ -11,6 +11,8 @@ TagManager:
   - Coin
   - DeathZone
   - Spikes
+  - FxTemporaire
+  - Powerup
   layers:
   - Default
   - TransparentFX

@@ -44,6 +44,7 @@ public class PlayerController : MonoBehaviour
     private SpriteRenderer dashSpriteRenderer; // Reference to the dash sprite renderer
 
     public ParticleSystem damageParticle; // Particle effect for damage
+    public ParticleSystem powerUpParticle;
 
     public int lives = 3;
     public int maxLives = 3;
@@ -115,8 +116,11 @@ public class PlayerController : MonoBehaviour
         if (Mathf.Abs(rb2d.linearVelocity.x) > 0.01f || Input.GetKey(KeyCode.LeftArrow) || Input.GetKey(KeyCode.RightArrow))
         {
             animator.SetBool("isWalking", true);
-            dashwindAnimator.SetBool("isMoving", true); // Set dash animation to moving
-            dashwindAnimator.gameObject.SetActive(true);
+            if (isOnGround)
+            { // Only play dash animation if on ground
+                dashwindAnimator.SetBool("isMoving", true); // Set dash animation to moving
+                dashwindAnimator.gameObject.SetActive(true);
+            }
         }
         else
         {
@@ -408,6 +412,9 @@ public class PlayerController : MonoBehaviour
         {
             StopCoroutine(powerUpRoutine); // Only one at a time (optional)
         }
+
+        powerUpParticle.transform.SetParent(transform); // Attach to player
+
         powerUpRoutine = StartCoroutine(ApplyPowerUp(type, duration));
     }
 
@@ -415,6 +422,8 @@ public class PlayerController : MonoBehaviour
     {
         originalSpeed = speed;
         originalJump = jumpForce;
+        
+        powerUpParticle.Play();
 
         switch (type)
         {
@@ -436,6 +445,7 @@ public class PlayerController : MonoBehaviour
         }
 
         yield return new WaitForSecondsRealtime(duration);
+        powerUpParticle.Stop();
 
         // Revert effects
         maxJumps = 2;

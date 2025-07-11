@@ -15,7 +15,7 @@ public class SpawnManager2 : MonoBehaviour
 
     public PlayerController playerController; // Reference to the PlayerController script
     public Transform player;
-    private float xRange = 8f; // Range for spawning platforms on the x-axis
+    private float xRange = 14f; // Range for spawning platforms on the x-axis
     private float spawnPosY = 9f;
 
     public float startDelay = 2f; // Delay before the first spawn
@@ -40,6 +40,9 @@ public class SpawnManager2 : MonoBehaviour
     private List<GameObject> recentPlatforms = new List<GameObject>();
     public float spawnOffsetY = 1f; // make sure this exists if using it
 
+    public GameObject fan;
+    private float fanSpawnChance = 0.1f; // 10% chance to spawn a fan
+    
     void Start()
     {
         Initialize();
@@ -70,6 +73,7 @@ public class SpawnManager2 : MonoBehaviour
         InvokeRepeating(nameof(SpawnRandomPlatform), 4f, 5f); // Random platform spawner
         InvokeRepeating(nameof(SpawnPowerup), 5f, 8f); // Powerup spawner
         StartCoroutine(SpawnJewelRoutine());
+        InvokeRepeating(nameof(SpawnFan), 6f, spawnInterval*4); // Fan spawner
     }
     void SpawnPlatform()
     {
@@ -173,11 +177,6 @@ public class SpawnManager2 : MonoBehaviour
                 // 10% chance to move horizontally
                 mover.movementType = VerticalPlatformMover.MovementType.Horizontal;
             }
-            else if (random < 0.2f)
-            {
-                // Next 10% chance to move vertically
-                mover.movementType = VerticalPlatformMover.MovementType.Vertical;
-            }
             else
             {
                 mover.movementType = VerticalPlatformMover.MovementType.None;
@@ -276,6 +275,23 @@ public class SpawnManager2 : MonoBehaviour
             }
         }
     }
+
+    public void SpawnFan()
+    {
+        if (fan == null)
+        {
+            return;
+        }
+
+        if (Random.value < fanSpawnChance )
+        {
+            float randomX = Random.Range(-xRange, xRange);
+            float y = 9f;
+            Instantiate(fan, new Vector3(randomX, y, 0), Quaternion.identity);
+
+        }
+    }
+
     public void SpawnCoin(Transform parentPlatform)
     {
         if (Random.value < coinChance)

@@ -29,11 +29,19 @@ public class DestroyOutOfBounds : MonoBehaviour
 
     void CleanUpObject()
     {
+
         // Notify the spawn manager BEFORE destroying
         SpawnManager2 spawnManager = FindObjectOfType<SpawnManager2>();
         if (spawnManager != null)
         {
             spawnManager.RemovePlatform(this.gameObject);
+        }
+
+        // Detach the player if it's a child of this object
+        Transform player = GameObject.FindWithTag("Player")?.transform;
+        if (player != null && player.parent == this.transform)
+        {
+            player.SetParent(null);
         }
 
         if (isPooledObject && ObjectPooling.Instance != null)

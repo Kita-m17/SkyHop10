@@ -11,7 +11,7 @@ public class SpawnManager2 : MonoBehaviour
     public GameObject gems;
     public GameObject coinPrefab;
     public GameObject mushroomPrefab;
-    public float mushroomSpawnChance = 0.1f; // 20% chance to spawn a mushroom
+    public float mushroomSpawnChance = 0.2f; // 20% chance to spawn a mushroom
 
     public PlayerController playerController; // Reference to the PlayerController script
     public Transform player;
@@ -71,7 +71,7 @@ public class SpawnManager2 : MonoBehaviour
 
         InvokeRepeating(nameof(SpawnPlatform), startDelay, spawnInterval);
         InvokeRepeating(nameof(SpawnRandomPlatform), 4f, 5f); // Random platform spawner
-        InvokeRepeating(nameof(SpawnPowerup), 5f, 8f); // Powerup spawner
+        InvokeRepeating(nameof(SpawnPowerup), 4f, 8f); // Powerup spawner
         StartCoroutine(SpawnJewelRoutine());
         InvokeRepeating(nameof(SpawnFan), 6f, spawnInterval*4); // Fan spawner
     }

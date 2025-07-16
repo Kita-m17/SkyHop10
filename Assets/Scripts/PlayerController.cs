@@ -37,6 +37,7 @@ public class PlayerController : MonoBehaviour
     public AudioClip deathSound;
     public AudioClip winSound;
     public AudioClip damageSound;
+    public AudioClip powerUpSound;
     public static PlayerController Instance;
 
     public GameObject dash;
@@ -87,9 +88,14 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
 
-        if (!GameManager.Instance.CanAcceptInput() || gameOver)
+        if (!GameManager.Instance.CanAcceptInput())
         {
             return;
+        }
+        if (gameOver)
+        {
+            win = false;
+            GameManager.Instance.GameOver();
         }
 
         float topOfScreenY = Camera.main.ViewportToWorldPoint(new Vector3(0, 1, 0)).y;
@@ -106,8 +112,10 @@ public class PlayerController : MonoBehaviour
             transform.position = new Vector3(transform.position.x, topOfScreenY, transform.position.z);
         }
 
+        float horizontalInput = Input.GetAxisRaw("Horizontal");
 
-        transform.Translate(Vector3.right * speed * Input.GetAxis("Horizontal") * Time.deltaTime);
+        // Handle movement
+        transform.Translate(Vector3.right * speed * horizontalInput * Time.deltaTime);
         /**
         Vector2 velocity = rb2d.velocity;
         velocity.x = Input.GetAxis("Horizontal") * speed;
@@ -130,7 +138,7 @@ public class PlayerController : MonoBehaviour
         }
 
         // Flip sprite ONLY if Left Arrow is explicitly pressed
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        if (Input.GetKeyDown(KeyCode.LeftArrow) || Input.GetKeyDown(KeyCode.A))
         {
             spriteRenderer.flipX = true;
             if (dash != null)
@@ -164,7 +172,7 @@ public class PlayerController : MonoBehaviour
             }
 
         }
-        else if (Input.GetKeyDown(KeyCode.RightArrow))
+        else if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
         {
             spriteRenderer.flipX = false;
             if (dash != null)
@@ -338,7 +346,7 @@ public class PlayerController : MonoBehaviour
 
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    void OnTriggerEnter2D(Collider2D other)
     {
         if (other.CompareTag("Gem"))
         {
@@ -366,6 +374,7 @@ public class PlayerController : MonoBehaviour
         }else if (other.CompareTag("Powerup")){
             ActivatePowerUp(other.GetComponent<PowerUpManager>().powerUpType, other.GetComponent<PowerUpManager>().duration);
             other.gameObject.SetActive(false);
+            playerAudio.PlayOneShot(powerUpSound, 1f);
         }
         
     }

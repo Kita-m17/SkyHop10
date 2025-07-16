@@ -45,7 +45,6 @@ public class MoveDown : MonoBehaviour
         {
             playerController = playerObj.GetComponent<PlayerController>();
             isInitialized = true;
-            isMoving = true;
         }
     }
 

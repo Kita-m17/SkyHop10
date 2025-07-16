@@ -137,7 +137,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1916576633829450897, guid: 199057f637d6daf449a4b64ab7fb2d69, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5.93
+      value: -5.75
       objectReference: {fileID: 0}
     - target: {fileID: 1916576633829450897, guid: 199057f637d6daf449a4b64ab7fb2d69, type: 3}
       propertyPath: m_LocalPosition.z
@@ -4485,6 +4485,7 @@ MonoBehaviour:
   deathSound: {fileID: 8300000, guid: abebb7783511e574c9fee04f7dc0d17b, type: 3}
   winSound: {fileID: 8300000, guid: 1403ca58c869ff1459413bfaf330aa37, type: 3}
   damageSound: {fileID: 8300000, guid: 9eda0b747d9a14746bbef4a1c57023c6, type: 3}
+  powerUpSound: {fileID: 8300000, guid: 59b5d03a613005e4ab4769ecde66345b, type: 3}
   dash: {fileID: 1098664027}
   damageParticle: {fileID: 907324059}
   powerUpParticle: {fileID: 252277113}
@@ -4663,6 +4664,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1596571026}
   - component: {fileID: 1596571025}
+  - component: {fileID: 1596571027}
   m_Layer: 0
   m_Name: DeathZone
   m_TagString: DeathZone
@@ -4732,6 +4734,18 @@ Transform:
   - {fileID: 864452016}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1596571027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1596571024}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0795689308bdfb1488e9b00fbbeab250, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1622609012 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 2044877902116627544, guid: 6af0575c920fdd140971e79c9891d653, type: 3}
@@ -5208,11 +5222,11 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 2253899162832117746, guid: c800f1bb490739e48a311021cf4c99fc, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -3.62
+      value: -3.58
       objectReference: {fileID: 0}
     - target: {fileID: 2253899162832117746, guid: c800f1bb490739e48a311021cf4c99fc, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -5.17
+      value: -5.1
       objectReference: {fileID: 0}
     - target: {fileID: 2253899162832117746, guid: c800f1bb490739e48a311021cf4c99fc, type: 3}
       propertyPath: m_LocalPosition.z
